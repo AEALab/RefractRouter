@@ -36,13 +36,18 @@ def classifier(target=None, family="fixture-extract"):
         for key in ("small", "large")}}})
 
 
-def sample(directory, cfg, model, count=1, *, trailing_tool=False):
+def sample(directory, cfg, model, count=1, *, trailing_tool=False, compaction=None):
     runtime = PlanningRuntime(directory)
     run = begin(runtime, "task", config=cfg, session=directory.name)
     messages = [{"role": "user", "content": f"提取第{directory.name}份构造数据的字段。"}]
     execute = receipt(runtime, run, step(runtime, run, messages=messages), classifier(model))
     assert execute["model"]["id"] == model
     receipt(runtime, run, execute, content="模拟提取交付")
+    if compaction is not None:
+        receipt(runtime, run, step(runtime, run, purpose='compaction', **compaction), content='模拟压缩摘要')
+        shadow = runtime.runs[run]['state']['taskShadow']
+        assert shadow['predictionStale'] is True and shadow['uncertain'] is True
+        assert shadow['staleReason'] == 'execution-contract-changed' and shadow['candidateId'] is None
     for _ in range(count - 1):
         execute = step(runtime, run, messages=messages)
         assert execute["model"]["id"] == model
@@ -68,6 +73,7 @@ def sample(directory, cfg, model, count=1, *, trailing_tool=False):
         candidate=(last["candidateId"], last["candidateSha256"]), source="hidden-evaluation", actor="fixture-oracle",
         status="accepted", artifacts=[digest(assessment)], criteria=assessment["criteriaSha256"]))
     result = runtime.handle({"op": "outcome", "runId": run, "identity": identity})
+    runtime.local_service.close()
     return {"result": result, "assessment": assessment, "sourceClusterId": str(directory.name), "split": "calibration"}
 
 
@@ -98,6 +104,39 @@ def test_cheap_per_call_but_repeated_full_task_cost_is_ranked_correctly(tmp_path
     assert result["productionQualificationClaimed"] is False
     assert result["corpusKind"] == "simulation"
     assert all(s["result"]["calls"][0]["purpose"] == "task" for s in samples)
+
+
+def test_new_request_contract_cannot_borrow_old_empirical_strata(tmp_path):
+    cfg = configuration()
+    runtime = PlanningRuntime(tmp_path / 'runtime')
+    run = begin(runtime, 'task', config=cfg)
+    action = receipt(runtime, run, step(runtime, run,
+        executionOptions={'response_format': {'type': 'json_object'}}), classifier())
+    assert action['purpose'] == 'execute'
+    shadow = runtime.runs[run]['state']['taskShadow']
+    assert shadow['uncertain'] is True and shadow['candidateId'] is None
+    assert shadow['reason'] == 'request-contract-not-in-v1-strata'
+    receipt(runtime, run, action)
+    runtime.handle({'op': 'end', 'runId': run})
+    runtime.local_service.close()
+    _, samples, _ = profile_fixture(tmp_path / 'samples')
+    samples[0]['result']['calls'][-1]['request_options_sha256'] = 'a' * 64
+    profile = build_profile(samples, kind='simulation')
+    assert profile['observations'][0]['excluded'] == 'request-contract-not-in-v1-strata'
+
+
+@pytest.mark.parametrize('contract', [
+    {'maxTokens': 64},
+    {'executionOptions': {'response_format': {'type': 'json_object'}}},
+    {'maxTokens': 64, 'executionOptions': {'response_format': {'type': 'json_object'}}},
+])
+def test_host_compaction_contract_invalidates_prediction_and_is_excluded_from_old_strata(tmp_path, contract):
+    value = sample(tmp_path / 'compaction', configuration(), 'small', compaction=contract)
+    row = next(r for r in value['result']['calls'] if r['purpose'] == 'compaction')
+    assert row.get('caller_output_cap') == contract.get('maxTokens')
+    assert bool(row.get('request_options_sha256')) == bool(contract.get('executionOptions'))
+    assert build_profile([value], kind='simulation')['observations'] == [
+        {'runId': value['result']['runId'], 'excluded': 'request-contract-not-in-v1-strata'}]
 
 
 def test_runtime_records_shadow_but_executes_legacy_choice_once_and_keeps_model(tmp_path):

@@ -86,7 +86,7 @@ class PlanningBudget:
             raise ValueError(f"缺少 {unit} 生产预算")
         from .task_budget import request_input_bound
         from .responses_api import available_output_limit
-        bound = request_input_bound(messages, kwargs.get('tools'))
+        bound = request_input_bound(messages, kwargs.get('tools'), kwargs.get('request_options'))
         amount = bound / 1000 * max(model.input_cost_per_1k, getattr(model, "cache_write_cost_per_1k", None) or 0) + available_output_limit(model, bound) / 1000 * model.output_cost_per_1k
         for dimension, required in self.requirements(model, amount).items():
             if required > self.remaining(dimension):

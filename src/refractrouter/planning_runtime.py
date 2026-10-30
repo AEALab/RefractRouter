@@ -14,7 +14,7 @@ from .planning_config import compile_config, preview, PROTOCOL, REQUIRED
 from .planning_policy import tool_events, stage_decision, static_choice, text_of
 from .host_evidence import validate_evidence
 from .privacy_placement import classify_view, allows_sensitive
-from .task_budget import request_input_bound
+from .task_budget import InvalidModelOutput, request_input_bound
 from .planning_budget import PlanningBudget
 from .planning_decision import (LocalDecisionCapacityError, candidate_assessments,
                                 decision_request, filter_candidates, parse_decision, select_task_candidate,
@@ -328,6 +328,9 @@ class PlanningRuntime(StageHybridRuntime):
         tools = deepcopy(request.get("tools", []))
         if not isinstance(messages, list) or not messages or not isinstance(tools, list):
             raise ValueError("需要原生消息和工具定义")
+        execution_options = deepcopy(request.get('executionOptions', {}))
+        from .protocol_admission import request_features
+        request_features(execution_options, tools)
         pending_tools = set()
         seen_tools = set()
         def check_blocks(blocks):
@@ -356,7 +359,7 @@ class PlanningRuntime(StageHybridRuntime):
                 check_blocks(m["content"])
         if pending_tools:
             raise ValueError("工具调用尚未完成，不能开始下一次模型请求")
-        if request_input_bound(messages, tools) > MAX_WIRE_BYTES:
+        if request_input_bound(messages, tools, execution_options) > MAX_WIRE_BYTES:
             raise ValueError("请求超过协议上限")
         events = (validate_evidence(request["toolEvidence"]) if "toolEvidence" in request
                   else tool_events(messages, request.get("events")))
@@ -366,6 +369,10 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("工具结果未确认")
         c, s = run["config"], run["state"]
         strategy = "static" if request.get("purpose") == "compaction" else run["strategy"]
+        if c.get('protocol_admission') is not None:
+            from .protocol_admission import admit_all
+            admit_all(c, strategy, messages, tools, execution_options,
+                      request.get('maxTokens'), self.admit)
         task_route = self._task_route(run)
         task_v3 = strategy in ("task", "composite") and task_route["mode"] == "pool"
         # 一个任务只允许一个在途策略流程。Stage 先选本轮目标模型，再由 issue
@@ -390,9 +397,9 @@ class PlanningRuntime(StageHybridRuntime):
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             purposes.append("capable")
         if configured_escalation:
-            self._preflight_escalation_path(run, messages, tools, request.get("maxTokens"))
+            self._preflight_escalation_path(run, messages, tools, request.get("maxTokens"), execution_options)
         elif strategy == "advisor" and c["advisor"].get("flow") == "gate-v2":
-            self._preflight_advisor_path(run, messages, tools, request.get("maxTokens"))
+            self._preflight_advisor_path(run, messages, tools, request.get("maxTokens"), execution_options)
         elif strategy not in ("stage", "static") and not task_v3:
             bounds = {}
             for role in purposes:
@@ -405,7 +412,7 @@ class PlanningRuntime(StageHybridRuntime):
                         model = replace(model, input_cost_per_1k=price["inputPer1k"],
                                         output_cost_per_1k=price["outputPer1k"],
                                         cached_input_cost_per_1k=price["cachedInputPer1k"])
-                input_bound = request_input_bound(messages, tools) if strategy == "static" else model.context_window
+                input_bound = request_input_bound(messages, tools, execution_options) if strategy == "static" else model.context_window
                 run["budget"].add_required(bounds, model, (
                     input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
                     + model.max_output_tokens / 1000 * model.output_cost_per_1k))
@@ -427,6 +434,7 @@ class PlanningRuntime(StageHybridRuntime):
         if not isinstance(request_id, str) or len(request_id) > 128:
             raise ValueError("无效宿主请求身份")
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
+                       "executionOptions": execution_options, "requestedMaxTokens": request.get('maxTokens'),
                        "responses": {}, "feedback": None, "requestId": request_id, "evidence": evidence,
                        "fresh": fresh, "maxTokens": output_cap, "purpose": request.get("purpose")}
         if request.get("purpose") != "compaction":
@@ -448,6 +456,8 @@ class PlanningRuntime(StageHybridRuntime):
             s['requireConfirmedToolEvidence'] = confirmed
             s['toolValidation'] = verify(requirements, task_events, require_confirmed=confirmed)
         if request.get("purpose") == "compaction":
+            if s.get('taskShadow') is not None or execution_options or request.get('maxTokens') is not None:
+                self._record_task_shadow(run)
             action = self.issue(run, "efficient", "compaction", messages, [], buffered=False)
             run["decisions"].append({"step": s["step"], "role": "efficient",
                 "model": c["roles"]["efficient"], "reason": "context-compaction-host",
@@ -586,7 +596,7 @@ class PlanningRuntime(StageHybridRuntime):
         self.persist(run)
         return self.execute(run)
 
-    def _cost_bound(self, model, messages, tools, output_cap=None):
+    def _cost_bound(self, model, messages, tools, output_cap=None, request_options=None):
         reserve = model
         if model.provider == "deepseek-official" and model.billing_unit == "CNY":
             pricing = deepseek_cny_pricing(model.api_model, conservative=True)
@@ -595,7 +605,7 @@ class PlanningRuntime(StageHybridRuntime):
                                   output_cost_per_1k=pricing["outputPer1k"])
         input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
         max_output = min(reserve.max_output_tokens, output_cap) if output_cap is not None else reserve.max_output_tokens
-        return (request_input_bound(messages, tools) / 1000 * input_price
+        return (request_input_bound(messages, tools, request_options) / 1000 * input_price
                 + max_output / 1000 * reserve.output_cost_per_1k)
 
     def _bounded_input_cost(self, model, input_bound, output_cap):
@@ -611,7 +621,7 @@ class PlanningRuntime(StageHybridRuntime):
         input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
         return input_bound / 1000 * input_price + max_output / 1000 * reserve.output_cost_per_1k
 
-    def _preflight_escalation_path(self, run, messages, tools, output_cap=None):
+    def _preflight_escalation_path(self, run, messages, tools, output_cap=None, request_options=None):
         """同一任务同一时间只有一个 flow；在初始派发前原子保护最坏调用路径。"""
         c, s = run["config"], run["state"]
         escalation = c["escalation"]
@@ -623,11 +633,11 @@ class PlanningRuntime(StageHybridRuntime):
         required = {}
         if s["latched"]:
             run["budget"].add_required(required, takeover, self._cost_bound(
-                takeover, messages, tools, output_cap))
+                takeover, messages, tools, output_cap, request_options))
             calls = 1
         else:
             for model in (initial, takeover):
-                amount = self._cost_bound(model, messages, tools, output_cap)
+                amount = self._cost_bound(model, messages, tools, output_cap, request_options)
                 run["budget"].add_required(required, model, amount)
             calls = 2
             judge = escalation["judge"]
@@ -654,7 +664,7 @@ class PlanningRuntime(StageHybridRuntime):
         s["protectedBudget"] = required
         s["protectedCalls"] = calls
 
-    def _preflight_advisor_path(self, run, messages, tools, output_cap=None):
+    def _preflight_advisor_path(self, run, messages, tools, output_cap=None, request_options=None):
         """保护当前执行、剩余审核，以及仍可能发生的一次返工执行。"""
         c, s = run["config"], run["state"]
         advisor = c["advisor"]
@@ -667,10 +677,10 @@ class PlanningRuntime(StageHybridRuntime):
         remaining_redos = max(0, max_redos - s["redos"])
         remaining_reviews = max(0, max_reviews - s["reviews"])
         required = {}
-        run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap))
+        run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap, request_options))
         calls = 1
         if remaining_redos:
-            run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap))
+            run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap, request_options))
             calls += 1
         judge = advisor["judge"]
         if judge["type"] == "llm" and remaining_reviews:
@@ -717,13 +727,14 @@ class PlanningRuntime(StageHybridRuntime):
         for item in candidates:
             model = c["models"][item["id"]]
             try:
-                self.admit(run, "execute", deepcopy(flow["messages"]), flow["tools"], model_id=item["id"])
-                input_bound = request_input_bound(flow["messages"], flow["tools"])
+                self.admit(run, "execute", deepcopy(flow["messages"]), flow["tools"], model_id=item["id"],
+                           execution_options=flow.get('executionOptions'))
+                input_bound = request_input_bound(flow["messages"], flow["tools"], flow.get('executionOptions'))
                 output_cap = min(model.max_output_tokens, flow.get("maxTokens") or model.max_output_tokens)
                 if input_bound + output_cap > model.context_window:
                     raise ValueError("上下文容量不足")
                 required = {}
-                execution_bound = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))
+                execution_bound = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"), flow.get('executionOptions'))
                 run["budget"].add_required(required, model, execution_bound)
                 if judge_unit is not None:
                     run["budget"].add_required(required, judge_model, judge_bound)
@@ -744,7 +755,7 @@ class PlanningRuntime(StageHybridRuntime):
         for item in flow["candidates"]:
             model = self._resolve_model(run, model_id=item["id"])
             bounds[item["id"]] = {"unit": model.billing_unit,
-                "amount": self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))}
+                "amount": self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"), flow.get('executionOptions'))}
             if run["config"].get("reference_limit") is not None:
                 bounds[item["id"]]["cashAmount"] = (0 if model.billing_mode == "subscription"
                     else bounds[item["id"]]["amount"])
@@ -761,15 +772,30 @@ class PlanningRuntime(StageHybridRuntime):
         from .task_projection import summary as projection_summary
         from .task_outcomes import digest as metadata_digest
         projection_digest = metadata_digest(projection_summary(state.get("currentTask")))
+        contract = {'options': flow.get('executionOptions') or {}, 'callerOutputCap': flow.get('requestedMaxTokens')}
+        contract_digest = metadata_digest(contract)
         if "taskShadow" in state:
+            if contract_digest != state.get('taskShadowRequestContractDigest'):
+                state['taskShadow'].update(predictionStale=True, staleReason='execution-contract-changed',
+                    uncertain=True, candidateId=None, costBasis='unavailable')
+                self.persist(run)
+                return
             if projection_digest != state.get("taskClassificationProjectionDigest"):
                 state["taskShadow"]["predictionStale"] = True
                 state["taskShadow"]["staleReason"] = "task-instructions-changed"
                 self.persist(run)
             return
         state["taskClassificationProjectionDigest"] = projection_digest
+        state['taskShadowRequestContractDigest'] = contract_digest
         context = state.get("taskCostContext") or make_context(c, None)
         state["taskCostContext"] = context
+        if contract['options'] or contract['callerOutputCap'] is not None:
+            state['taskShadow'] = {'schemaVersion': 'task-expected-cost-shadow-v1', 'mode': 'shadow',
+                'uncertain': True, 'candidateId': None, 'actualCandidateId': state.get('selected_model'),
+                'actualSelectionChanged': False, 'costBasis': 'unavailable', 'rows': [],
+                'reason': 'request-contract-not-in-v1-strata', 'productionQualificationClaimed': False}
+            self.persist(run)
+            return
         remaining = {unit: run["budget"].remaining(unit) for unit in c["budgets"]}
         if c.get("reference_limit") is not None:
             snapshot = run["budget"].reference_snapshot()
@@ -792,7 +818,7 @@ class PlanningRuntime(StageHybridRuntime):
         for item in candidates:
             model = self._resolve_model(run, model_id=item["id"])
             run["budget"].add_required(candidate_bounds, model,
-                self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens")), maximum=True)
+                self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"), flow.get('executionOptions')), maximum=True)
         required = dict(candidate_bounds)
         calls = 1
         if include_judge and self._task_route(run)["judge"]["type"] == "jev":
@@ -824,7 +850,7 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError(f"模型配置不可用：{resolved or role}")
         return c["models"][resolved]
 
-    def admit(self, run, role, messages, tools, *, model_id=None):
+    def admit(self, run, role, messages, tools, *, model_id=None, execution_options=None):
         c = run["config"]
         model = self._resolve_model(run, role, model_id)
         block_types = {block.get("type") for message in messages
@@ -835,7 +861,10 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("目标模型未接通图片输入；当前路线仅支持文本")
         if "video" in block_types and modalities.get("videoInput") not in ("connected", "verified"):
             raise ValueError("目标模型未接通原生影片输入")
-        grade = classify_view(json.dumps({"messages": messages, "tools": tools}, ensure_ascii=False), privacy=c["security"])
+        view = {"messages": messages, "tools": tools}
+        if execution_options:
+            view['executionOptions'] = execution_options
+        grade = classify_view(json.dumps(view, ensure_ascii=False), privacy=c["security"])
         if grade["grade"] != "S3" and not allows_sensitive(model.deployment, c["security"]):
             reasons = [str(reason).split(":", 1)[0] for reason in grade["reasons"]]
             raise ValueError("当前输入不允许发送到目标模型的数据域：" + "、".join(reasons))
@@ -850,26 +879,8 @@ class PlanningRuntime(StageHybridRuntime):
             old = next((m.model_id for m in c["models"].values()
                         if m.provider == source.get("provider") and m.api_model == source.get("model")), None)
             if old != model.model_id and [old, model.model_id] not in c["pairs"]:
-                content = message.get("content")
-                # 宿主标准文本与已配对的工具调用可按原结构发送；去掉提供方专用
-                # replay 和思考块，避免把旧模型的私有状态交给新模型。
-                def standard(block):
-                    if not isinstance(block, dict):
-                        return False
-                    if block.get("type") == "text":
-                        return isinstance(block.get("text"), str)
-                    if block.get("type") == "reasoning":
-                        return True
-                    return (block.get("type") == "tool-call"
-                            and all(isinstance(block.get(key), str) for key in ("id", "name", "arguments")))
-
-                if (message.get("role") == "assistant" and isinstance(content, list)
-                        and any(isinstance(block, dict) and block.get("type") in ("text", "tool-call")
-                                for block in content) and all(standard(block) for block in content)):
-                    message["content"] = [block for block in content if block["type"] != "reasoning"]
-                    source.pop("replayState", None)
-                else:
-                    raise ValueError("模型历史 replay 组合未经兼容验收")
+                # 不通过删除真实 replay 或思考历史来制造换模兼容。
+                raise ValueError("模型历史 replay 组合未经兼容验收；保留原始历史并拒绝派发")
         return model
 
     def issue_jev(self, run, kind, request, *, timeout_ms):
@@ -965,7 +976,8 @@ class PlanningRuntime(StageHybridRuntime):
 
     def issue(self, run, role, purpose, messages, tools, *, model_id=None, buffered=True, update=None,
               output_cap=None):
-        model = self.admit(run, role, messages, tools, model_id=model_id)
+        options = run['flow'].get('executionOptions') if purpose in ('execute', 'redo', 'takeover', 'compaction') else None
+        model = self.admit(run, role, messages, tools, model_id=model_id, execution_options=options)
         pricing = None
         reserve_pricing = None
         if model.provider == "deepseek-official" and model.billing_unit == "CNY":
@@ -986,7 +998,7 @@ class PlanningRuntime(StageHybridRuntime):
             output_cost_per_1k=reserve_pricing["outputPer1k"] if reserve_pricing else model.output_cost_per_1k)
         try:
             reservation = run["budget"].reserve(reserve_model, messages,
-                label=f'{run["id"]}:{len(run["budget"].records)}', tools=tools or None)
+                label=f'{run["id"]}:{len(run["budget"].records)}', tools=tools or None, request_options=options)
         except ValueError as exc:
             if "budget-exhausted" in str(exc) or "call-limit" in str(exc):
                 raise ValueError(
@@ -999,6 +1011,8 @@ class PlanningRuntime(StageHybridRuntime):
                                host_request_id=run["flow"]["requestId"],
                                provider=model.provider, actual_model=model.api_model,
                                reasoning_effort=model.request_options.get("reasoning_effort"))
+        if purpose in ('execute', 'redo', 'takeover', 'compaction') and run['flow'].get('requestedMaxTokens') is not None:
+            reservation.row['caller_output_cap'] = run['flow']['requestedMaxTokens']
         if model.billing_mode == 'subscription':
             source = next(item for item in run['config']['raw']['models'] if item['id'] == model.model_id)
             reservation.row['reference_pricing'] = deepcopy(source['referencePricing'])
@@ -1289,13 +1303,19 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("未知或已结算的调用回执")
         token, reservation, purpose = flow["pending"]
         raw = request.get("response", {})
+        cache_source = raw.get("cacheUsageSource")
+        if cache_source is not None and (not isinstance(cache_source, str) or not cache_source
+                or cache_source != cache_source.strip() or len(cache_source) > 256):
+            raise ValueError("缓存用量来源必须为有界非空字符串")
         response = ChatResponse(content=raw.get("content", ""), input_tokens=raw.get("inputTokens", 0),
             output_tokens=raw.get("outputTokens", 0), cached_input_tokens=raw.get("cachedInputTokens", 0),
             reasoning_tokens=raw.get("reasoningTokens", 0), latency_ms=raw.get("latencyMs", 0),
             attempts=1, finish_reason=raw.get("finishReason"), request_id=raw.get("requestId"),
             usage_available=raw.get("usageAvailable") is True, tool_calls=tuple(raw.get("toolCalls", [])),
             ttft_ms=raw.get("ttftMs"), replay_state=raw.get("replayState"),
-            raw_usage={"cacheWriteTokens": raw.get("cacheWriteTokens", 0)})
+            raw_usage={"cacheWriteTokens": raw.get("cacheWriteTokens", 0),
+                       "cacheWriteUsageAvailable": "cacheWriteTokens" in raw, "providerUsage": raw.get("rawUsage")},
+            cache_usage_source=cache_source)
         try:
             write_tokens = raw.get("cacheWriteTokens", 0)
             if type(write_tokens) is not int or write_tokens < 0 or write_tokens + response.cached_input_tokens > response.input_tokens:
@@ -1303,13 +1323,21 @@ class PlanningRuntime(StageHybridRuntime):
             if write_tokens and reservation.model.cache_write_cost_per_1k is None:
                 raise ValueError("缓存写入价格未确认；保留预留并停止")
             run["budget"].settle(reservation, response)
+        except InvalidModelOutput:
+            if run["status"] != "cancelled" or reservation.row["status"] != "billed":
+                self.stop(run, "call-failed")
+                raise
+            # 取消后的不完整正文不能交付，但已知终止用量已经由原账本正确结算。
         except Exception:
             self.stop(run, "call-failed")
             raise
         flow["pending"] = None
+        from .transport_observation import attach_router_timing
+        attach_router_timing(reservation.row, raw)
         flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls,
                                     "finishReason": response.finish_reason}
-        reservation.row["disposition"] = "consult" if purpose in ("task", "advisor", "escalation") else "buffered"
+        reservation.row["disposition"] = ("discarded" if run["status"] == "cancelled" else
+            "consult" if purpose in ("task", "advisor", "escalation") else "buffered")
         self.persist(run)
         if run["status"] != "running" or (run["deadline"] is not None and time.monotonic() >= run["deadline"]):
             self.stop(run, run["status"] if run["status"] != "running" else "deadline-exhausted")
@@ -1650,7 +1678,11 @@ class PlanningRuntime(StageHybridRuntime):
 
     def handle(self, request):
         with self.lock:
-            return self._handle(request)
+            started = time.perf_counter()
+            result = self._handle(request)
+            if isinstance(result, dict) and result.get('action') == 'call':
+                result['routerOperationMs'] = (time.perf_counter() - started) * 1000
+            return result
 
     def local_judge(self, request):
         config = compile_config(request.get("config", {}))
@@ -1879,6 +1911,8 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
+                "planning-routing-v8", "planning-terminal-usage-v1", "all-executor-protocol-admission-v1",
+                "planning-transport-observation-v1",
                 "composite-task-stage-v1",
                 "task-result-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
@@ -1957,6 +1991,14 @@ class PlanningRuntime(StageHybridRuntime):
         run = self.runs[key]
         if operation == "query":
             return self.persist(run)
+        if operation == 'delivery-observation':
+            from .transport_observation import attach_delivery
+            row = next((r for r in run['budget'].records if r.get('call_id') == request.get('callId')), None)
+            if row is None or not row.get('dispatch_at'):
+                raise ValueError('交付观测必须绑定本任务已派发调用')
+            attach_delivery(row, request.get('observation'))
+            self.persist(run)
+            return {'schemaVersion': 'planning-transport-observation-v1', 'recorded': True}
         if operation == "local-judge-poll":
             job = (run.get("flow") or {}).get("localJudge")
             if not job or request.get("jobId") != job["jobId"]:

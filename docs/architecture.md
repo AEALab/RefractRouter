@@ -197,6 +197,10 @@ v8 的 [整任务经验费用与影子选择](task-empirical-shadow.md)以独立
 不以成功写入或固定保持耗尽证明恢复。普通 shell 退出码不补造完整验收；hybrid 现有连续
 确认保持，默认选择和已交付内容不变。
 
+[现有协议、流式与结算验收](protocol-streaming-acceptance.md)在既有 Chat / Responses 范围内
+显式检查全执行候选，保留工具与思考归属、取消后的实际用量和未知预留，并将宿主文本交付
+与上游首 token 分开观测。能力配置及本机夹具通过不替代真实后端资格或质量收益验收。
+
 CI 安装锁定的 Python 和 TypeScript 依赖，检查类型、构建插件并运行 `uv run pytest`，
 其中包含编译后的 TypeScript 契约测试。兼容矩阵在 Node `22.19.0` 和最新 Node 22 上
 启动 DSH `0.1.1-rc.2`，覆盖安装、配置覆盖、卸载、重装及源码和打包分发路径。

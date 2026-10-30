@@ -79,7 +79,8 @@ def test_batch_failure_policy_continues_only_confirmed_independent_provider_fail
     model, _, budget = setup(Bridge())
     reservation = budget.reserve(model, [{'role':'user','content':'test'}], label='batch')
     budget.dispatch(reservation)
-    receipt = ChatResponse('partial', 100, 20, 0, 0, 12, 1, 'error', 'id') if confirmed else None
+    receipt = ChatResponse('partial', 100, 20, 0, 0, 12, 1, 'error', 'id',
+                           raw_usage={'cacheWriteTokens': 0}) if confirmed else None
     error = ModelInvocationError(kind, 'fixture', 1, 12, confirmed_response=receipt)
     record_invocation_failure(budget, reservation, error)
     assert budget.stopped is stopped
@@ -90,8 +91,21 @@ def test_excess_failure_usage_stops_and_preserves_billing():
     model, _, budget = setup(Bridge())
     reservation = budget.reserve(model, [{'role':'user','content':'test'}], label='excess')
     budget.dispatch(reservation)
-    receipt = ChatResponse('partial', 100, 50000, 0, 0, 12, 1, 'error', 'id')
+    receipt = ChatResponse('partial', 100, 50000, 0, 0, 12, 1, 'error', 'id',
+                           raw_usage={'cacheWriteTokens': 0})
     with pytest.raises(ValueError, match='exceeded'):
         record_invocation_failure(budget, reservation,
             ModelInvocationError('provider-error', 'fixture', 1, 12, confirmed_response=receipt))
     assert budget.stopped and reservation.row['status'] == 'billed'
+
+
+def test_failure_receipt_with_unknown_distinct_cache_write_price_stops_with_reserve():
+    model, _, budget = setup(Bridge())
+    reservation = budget.reserve(model, [{'role': 'user', 'content': 'test'}], label='unknown-write')
+    budget.dispatch(reservation)
+    receipt = ChatResponse('partial', 100, 20, 0, 0, 12, 1, 'error', 'id')
+    with pytest.raises(ValueError, match='unconfirmed cache write usage'):
+        record_invocation_failure(budget, reservation,
+            ModelInvocationError('provider-error', 'fixture', 1, 12, confirmed_response=receipt))
+    assert budget.stopped and reservation.row['status'] == 'unknown-usage'
+    assert reservation.row['charged'] == reservation.row['reserved']

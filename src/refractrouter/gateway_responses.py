@@ -121,22 +121,37 @@ def to_chat(request):
 
 def from_chat(chat, aliases=None):
     choice = chat['choices'][0]
+    finish = choice['finish_reason']
+    status = 'completed' if finish in ('stop', 'tool_calls') else 'incomplete' if finish in ('length', 'content_filter') else 'failed'
+    item_status = 'completed' if status == 'completed' else 'incomplete'
     message, output = choice['message'], []
     if message.get('content'):
-        output.append({'type': 'message', 'id': 'msg_' + uuid4().hex, 'role': 'assistant', 'status': 'completed',
+        output.append({'type': 'message', 'id': 'msg_' + uuid4().hex, 'role': 'assistant', 'status': item_status,
             'content': [{'type': 'output_text', 'text': message['content'], 'annotations': []}]})
     for call in message.get('tool_calls', []):
         output.append({'type': 'function_call', 'id': 'fc_' + uuid4().hex, 'call_id': call['id'],
-            'name': call['function']['name'], 'arguments': call['function']['arguments'], 'status': 'completed'})
+            'name': call['function']['name'], 'arguments': call['function']['arguments'], 'status': item_status})
     for item in output:
         if item['type']=='function_call' and item['name'] in (aliases or {}):
             item.update(aliases[item['name']])
-    incomplete = choice['finish_reason'] == 'length'
+    usage = {'input_tokens': chat['usage']['prompt_tokens'], 'output_tokens': chat['usage']['completion_tokens'],
+             'total_tokens': chat['usage']['total_tokens']}
+    for source, target, field, total in (('prompt_tokens_details', 'input_tokens_details', 'cached_tokens', usage['input_tokens']),
+                                       ('completion_tokens_details', 'output_tokens_details', 'reasoning_tokens', usage['output_tokens'])):
+        detail = chat['usage'].get(source)
+        if detail is not None:
+            if not isinstance(detail, dict):
+                raise ValueError('用量细分字段无效')
+            if field in detail:
+                value = detail[field]
+                if type(value) is not int or type(total) is not int or not 0 <= value <= total:
+                    raise ValueError('用量细分计数无效')
+                usage[target] = {field: value}
     return {'id': 'resp_' + uuid4().hex, 'object': 'response', 'created_at': chat['created'],
-        'model': chat['model'], 'status': 'incomplete' if incomplete else 'completed', 'output': output,
-        'error': None, 'incomplete_details': {'reason': 'max_output_tokens'} if incomplete else None,
-        'usage': {'input_tokens': chat['usage']['prompt_tokens'], 'output_tokens': chat['usage']['completion_tokens'],
-                  'total_tokens': chat['usage']['total_tokens']}}
+        'model': chat['model'], 'status': status, 'output': output,
+        'error': {'code': 'upstream_finish_error', 'message': '上游未成功结束'} if status == 'failed' else None,
+        'incomplete_details': {'reason': 'max_output_tokens' if finish == 'length' else 'content_filter'} if status == 'incomplete' else None,
+        'usage': usage}
 
 
 def stream_events(response):
@@ -150,6 +165,9 @@ def stream_events(response):
     initial = {**response, 'status': 'in_progress', 'output': [], 'usage': None}
     yield event('response.created', response=initial)
     yield event('response.in_progress', response=initial)
+    if response['status'] != 'completed':
+        yield event('response.incomplete' if response['status'] == 'incomplete' else 'response.failed', response=response)
+        return
     for index, item in enumerate(response['output']):
         stub = {**item, 'status': 'in_progress'}
         if item['type'] == 'message':

@@ -97,7 +97,8 @@ def test_official_cash_reserves_peak_and_settles_dispatch_time_tier():
     reservation = budget.reserve(model, [{'role': 'user', 'content': '合成测试'}], label='worker')
     budget.dispatch(reservation)
     reservation.row['dispatch_at'] = datetime(2026, 10, 4, tzinfo=timezone.utc).isoformat()
-    response = ChatResponse('完成', 100, 20, 0, 0, 10, 1, 'stop', 'mock')
+    response = ChatResponse('完成', 100, 20, 0, 0, 10, 1, 'stop', 'mock',
+                            raw_usage={'cacheWriteTokens': 0})
     budget.settle(reservation, response)
     assert reservation.row['charged'] == pytest.approx(100/1000*.001+20/1000*.004)
     assert reservation.row['price_snapshot']['tier'] == 'offpeak'

@@ -509,8 +509,8 @@ def test_task_judge_preflight_prices_the_exact_dispatched_request(tmp_path, monk
     priced = []
     original = runtime._cost_bound
 
-    def capture(model, messages, tools, output_cap=None):
-        amount = original(model, messages, tools, output_cap)
+    def capture(model, messages, tools, output_cap=None, request_options=None):
+        amount = original(model, messages, tools, output_cap, request_options)
         if model.model_id == "judge":
             priced.append((deepcopy(messages), amount))
         return amount
@@ -1578,9 +1578,10 @@ def test_replay_admission_child_isolation_compaction(tmp_path):
             "id": "read1", "name": "read", "arguments": "{}"}]},
         {"role": "user", "content": [{"type": "tool-result", "toolCallId": "read1",
             "content": [{"type": "text", "text": "完成"}]}]}]
-    forwarded = step(r, run, deepcopy(messages))["messages"]
-    assert forwarded[0]["content"] == messages[0]["content"]
-    assert forwarded[0]["source"] == {"kind": "model", "provider": "fake", "model": "large"}
+    saved = deepcopy(messages)
+    with pytest.raises(ValueError, match="保留原始历史"):
+        step(r, run, messages)
+    assert messages == saved and not r.runs[run]["budget"].records
     malformed = deepcopy(messages)
     del malformed[0]["content"][0]["name"]
     with pytest.raises(ValueError, match="兼容"):
@@ -1608,9 +1609,10 @@ def test_plain_legacy_model_history_needs_no_replay_pair(tmp_path):
         "replayState": {"response": {"providerSpecific": True}}}, "content": [
             {"type": "reasoning", "text": "旧提供方思考"}, *messages[0]["content"]]}]
     run = begin(r, "static", turn=2)
-    forwarded = step(r, run, opaque)["messages"][0]
-    assert forwarded["source"] == {"kind": "model", "provider": "refract-fixture", "model": "small"}
-    assert forwarded["content"] == messages[0]["content"]
+    saved = deepcopy(opaque)
+    with pytest.raises(ValueError, match="replay"):
+        step(r, run, opaque)
+    assert opaque == saved and not r.runs[run]["budget"].records
 
 
 def test_random_seed_reproducible_and_sensitive_preflight(tmp_path):

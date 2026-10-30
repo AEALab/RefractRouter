@@ -78,6 +78,7 @@ export class PlanningWorker implements PlanningRpc {
     if(this.failure)throw this.failure
     const id=randomUUID(),line=JSON.stringify({protocol:PLANNING_PROTOCOL,id,...value})+'\n'
     if(Buffer.byteLength(line)>16*1024*1024)throw new Error('规划路由请求过大')
+    const submitted=performance.now()
     return new Promise((resolve,reject)=>{
       const localOperation=value.op==='local-judge'||value.op==='automatic-local-judge'
       const timeout=localOperation&&value.action==='download'?15*60*1000:
@@ -87,7 +88,9 @@ export class PlanningWorker implements PlanningRpc {
       const timer=setTimeout(()=>{
         this.fail(new Error('规划路由进程响应超时；不自动重新派发'));this.handle?.terminate?.()
       },timeout)
-      this.pending.set(id,{resolve:v=>{clearTimeout(timer);resolve(v)},reject:e=>{clearTimeout(timer);reject(e)}})
+      this.pending.set(id,{resolve:v=>{clearTimeout(timer)
+        if(v?.action==='call')v.routerRoundTripMs=performance.now()-submitted
+        resolve(v)},reject:e=>{clearTimeout(timer);reject(e)}})
       this.handle!.stdin!.write(line,(error)=>{if(error){this.pending.get(id)?.reject(error);this.pending.delete(id)}})
     })
   }
@@ -123,6 +126,17 @@ function sumUsage(total:TokenUsage,usage:TokenUsage):void {
   for(const key of ['inputTokens','outputTokens','cacheReadTokens','cacheWriteTokens','reasoningTokens'] as const)
     total[key]=(total[key]??0)+(usage[key]??0)
 }
+function responseReceipt(candidate:Json,usage:TokenUsage|undefined,finish:Json|undefined,
+  ttftMs:number|undefined,latencyMs:number,timing:Json):Json {
+  return {...candidate,
+    usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
+    inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
+    ...(usage?.cacheWriteTokens!==undefined?{cacheWriteTokens:usage.cacheWriteTokens}:{}),ttftMs,replayState:finish?.replayState,
+    cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
+    reasoningTokens:usage?.reasoningTokens??0,latencyMs,rawUsage:usage,
+    routerOperationMs:timing.routerOperationMs,routerRoundTripMs:timing.routerRoundTripMs,
+    ...(usage?.cacheReadTokens!==undefined?{cacheUsageSource:'dsh-usage.cacheReadTokens'}:{})}
+}
 function waitFor(ms:number,signal:AbortSignal):Promise<void>{
   return new Promise((resolve,reject)=>{
     if(signal.aborted){reject(signal.reason);return}
@@ -155,7 +169,7 @@ export class PlanningController {
     await Promise.all((config.models??[]).map(async (model:Json)=>{
       try{
         const info=await this.metadata(model.provider,model.model,
-          config.schemaVersion==='refractagent-planning-v7'&&!model.referencePricing?'REFERENCE':'AUTO',model)
+          ['refractagent-planning-v7','refractagent-planning-v8'].includes(config.schemaVersion)&&!model.referencePricing?'REFERENCE':'AUTO',model)
         const hostModel=await this.ctx.llm.resolveModelInfo!(model.provider,model.model) as Json
         const reasoning=hostModel.reasoning as Json|undefined
         const efforts=Array.isArray(reasoning?.efforts)
@@ -348,7 +362,7 @@ export class PlanningController {
     return this.rpc.request({op:'automatic-trace',runIds})
   }
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
-    localBackends=false,jev=false,openrouter=false,currency=false):Promise<void>{
+    localBackends=false,jev=false,openrouter=false,currency=false,terminalUsage=false,strictProtocol=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -371,6 +385,12 @@ export class PlanningController {
       throw new Error('当前核心不支持官方 Jev Judge；请同时升级核心和插件')
     if(openrouter&&!capabilities.includes('jev-openrouter-v1'))
       throw new Error('当前核心不支持 OpenRouter Jev；请同时升级核心和插件')
+    if(terminalUsage&&!capabilities.includes('planning-terminal-usage-v1'))
+      throw new Error('当前核心不支持取消后的终止用量结算；请同时升级核心和插件')
+    if(terminalUsage&&!capabilities.includes('planning-transport-observation-v1'))
+      throw new Error('当前核心不支持交付时延观测；请同时升级核心和插件')
+    if(strictProtocol&&!capabilities.includes('all-executor-protocol-admission-v1'))
+      throw new Error('当前核心不支持全执行候选协议准入；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -397,6 +417,7 @@ export class PlanningController {
     return credential.value
   }
   async *stream(options:ModelOptions):AsyncGenerator<Record<string,unknown>> {
+    const streamStarted=performance.now()
     if(!this.ctx.llm.stream||!this.ctx.agents)throw new Error('规划路由需要 DSH 原生模型与 Agent 服务')
     const agent=this.ctx.agents.requireInitiator()
     const session=agent.session.header?.id,agentId=agent.id
@@ -418,11 +439,23 @@ export class PlanningController {
     const cancelled=new AbortController()
     const signal=AbortSignal.any([cancelled.signal,...(options.signal?[options.signal]:[])])
     let runId=this.tasks.get(key),done=false
+    const deliveries=new Map<string,{text:string;observation:Json}>()
+    const noteDelivery=(callId:string,chunk:Json,mode:string,timing:Json):void=>{
+      if(chunk.type!=='text-delta'||typeof chunk.text!=='string'||!chunk.text)return
+      let entry=deliveries.get(callId)
+      if(!entry){entry={text:'',observation:{schemaVersion:'planning-transport-observation-v1',
+        clockOrigin:'dsh-model-request-start',firstTextMs:performance.now()-streamStarted,mode,
+        routerOperationMs:timing.routerOperationMs,routerRoundTripMs:timing.routerRoundTripMs}}
+        deliveries.set(callId,entry)}
+      entry.text+=chunk.text
+      entry.observation.releasedTextBytes=Buffer.byteLength(entry.text)
+    }
     try{
       signal.throwIfAborted()
       await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
         strategy==='composite'&&Boolean(config.composite),false,false,activeJev,
-        activeJev&&config.jev?.route==='openrouter',config.schemaVersion==='refractagent-planning-v7')
+        activeJev&&config.jev?.route==='openrouter',
+        ['refractagent-planning-v7','refractagent-planning-v8'].includes(config.schemaVersion),true,!!config.protocolAdmission)
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         if(activeJev){
@@ -443,8 +476,10 @@ export class PlanningController {
         .map(e=>({type:e.type,data:e.data}))
       let action=await this.rpc.request({op:'step',runId,messages,tools:options.tools??[],
         requestId:randomUUID(),maxTokens:options.maxTokens,purpose:options.purpose,
+        executionOptions:{...(options.temperature!==undefined?{temperature:options.temperature}:{}),
+          ...(options.stop?{stop:options.stop}:{})},
         events:this.evidence.enrich(session,nativeEvents)})
-      const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean;candidate:Json}>()
+      const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean;candidate:Json;timing:Json}>()
       const total:TokenUsage={}
       while(action.action==='call'||action.action==='wait'||action.action==='jev'){
         if(action.action==='wait'){
@@ -462,21 +497,32 @@ export class PlanningController {
           typeof value==='number'&&Number.isFinite(value))
         const callSignal=limits.length?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,Math.min(...limits)))]):signal
         const chunks:Json[]=[]
-        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
+        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined,usageConflict=false
         const started=performance.now()
         let streamError:unknown
         try{for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,options))){
-          callSignal.throwIfAborted()
           const chunk=native as Json
           bytes+=Buffer.byteLength(JSON.stringify(chunk))
           if(bytes>8*1024*1024)throw new Error('规划路由回复缓冲超过 8 MiB')
-          if(chunk.type==='usage'){usage=chunk.usage as TokenUsage;continue}
+          if(chunk.type==='usage'){
+            const next=chunk.usage as TokenUsage|undefined
+            if(!next||typeof next!=='object'||Array.isArray(next)){
+              usageConflict=true;throw new Error('模型用量回执类型无效；保留预留')
+            }
+            for(const key of ['inputTokens','outputTokens','cacheReadTokens','cacheWriteTokens','reasoningTokens'] as const)
+              if(usage?.[key]!==undefined&&next[key]!==undefined&&usage[key]!==next[key])usageConflict=true
+            usage={...usage,...next}
+            callSignal.throwIfAborted()
+            continue
+          }
+          callSignal.throwIfAborted()
           if(chunk.type==='finish'){finish=chunk;continue}
           if(finish)throw new Error('模型 finish 后继续输出')
           if(chunk.type==='text-delta')ttftMs??=performance.now()-started
           chunks.push(chunk)
-          if(!action.buffered)yield chunk
+          if(!action.buffered){noteDelivery(action.callId,chunk,'live-text',action);yield chunk}
         }}catch(error){streamError=error}
+        if(usageConflict)streamError=new Error('模型用量回执冲突；保留预留并停止')
         if(!streamError&&finish?.reason?.kind==='error'){
           const failure=finish.reason.failure as Json|undefined
           streamError=new Error('底层模型调用失败'+(failure?.code?'（'+String(failure.code)+'）':'')+
@@ -485,26 +531,31 @@ export class PlanningController {
         if(!streamError&&!finish)streamError=new Error('底层模型没有返回完成回执；用量待核对')
         if(streamError||callSignal.aborted){
           await this.rpc.request({op:'cancel',runId})
+          if(usage&&!usageConflict){
+            let partial:Json|undefined
+            try{partial=dshCandidate(chunks,finish?.reason?.kind??'cancelled',true)}
+            catch{streamError??=new Error('取消回复的内容块无效；保留预留并停止')}
+            // 先停止整个任务，再结算原调用；不放行候选工具或触发下一次审核。
+            if(partial)await this.rpc.request({op:'complete',runId,callId:action.callId,
+              response:responseReceipt(partial,usage,finish,ttftMs,performance.now()-started,action)})
+          }
           if(streamError)throw streamError
           callSignal.throwIfAborted()
         }
         if(usage)sumUsage(total,usage)
-        const candidate=dshCandidate(chunks,finish?.reason?.kind)
-        outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered,candidate})
-        action=await this.rpc.request({op:'complete',runId,callId:action.callId,response:{
-          ...candidate,
-          usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
-          inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
-          cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
-          cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
-          reasoningTokens:usage?.reasoningTokens??0,latencyMs:performance.now()-started}})
+        const candidate=dshCandidate(chunks,finish?.reason?.kind,true)
+        outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered,candidate,
+          timing:{routerOperationMs:action.routerOperationMs,routerRoundTripMs:action.routerRoundTripMs}})
+        action=await this.rpc.request({op:'complete',runId,callId:action.callId,
+          response:responseReceipt(candidate,usage,finish,ttftMs,performance.now()-started,action)})
         callSignal.throwIfAborted()
       }
       signal.throwIfAborted()
       if(action.action!=='release')throw new Error('核心没有接受回复')
       const accepted=outputs.get(action.callId)
       if(!accepted)throw new Error('已接受回复不属于当前请求')
-      if(accepted.buffered)for(const chunk of accepted.chunks){signal.throwIfAborted();yield chunk}
+      if(accepted.buffered)for(const chunk of accepted.chunks){signal.throwIfAborted()
+        noteDelivery(action.callId,chunk,'buffered-release',accepted.timing);yield chunk}
       yield {type:'usage',usage:total}
       const replay=accepted.finish.replayState as Json|undefined
       const factVerification=options.purpose==='compaction'?undefined:
@@ -519,6 +570,8 @@ export class PlanningController {
     }finally{
       cancelled.abort()
       if(runId&&!done)await this.rpc.request({op:'cancel',runId}).catch(()=>{})
+      if(runId)for(const [callId,entry] of deliveries)
+        await this.rpc.request({op:'delivery-observation',runId,callId,observation:entry.observation}).catch(()=>{})
     }
   }
 }

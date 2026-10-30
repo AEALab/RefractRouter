@@ -185,7 +185,10 @@ def validate_configured_providers(run, workspace, executable, runs, env):
             try:
                 answer = run(['dsh', '--profile', 'headless', '--patch', patch_file, '请用一句话比较两种方案。'])
             except RuntimeError as exc:
-                raise RuntimeError(f'{kind}: fixture failures={failures}; calls={calls[start:]}') from exc
+                diagnostics = [{key: row.get(key) for key in ('status', 'issues', 'plan_admission')}
+                    for path in (runs/kind).glob('*/summary.json') for row in [json.loads(path.read_text())]]
+                raise RuntimeError(f'{kind}: fixture failures={failures}; calls={calls[start:]}; '
+                                   f'capacity_diagnostics={diagnostics}') from exc
             summaries = [json.loads(p.read_text()) for p in (runs/kind).glob('*/summary.json')]
             assert len(summaries)==1, answer[-1000:]
             summary = summaries[0]
@@ -318,7 +321,9 @@ def main():
                                       '--executable', executable, '--workspace', workspace]))
         stage_shadow = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_task_shadow_worker.py',
                                       '--executable', executable, '--workspace', workspace, '--mode', 'stage']))
-        evidence = {'stage_shadow': stage_shadow, 'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        gateway_protocol = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_gateway_protocol_install.py',
+                                          '--workspace', workspace]))
+        evidence = {'gateway_protocol': gateway_protocol, 'stage_shadow': stage_shadow, 'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},

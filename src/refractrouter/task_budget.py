@@ -16,9 +16,11 @@ from .node_routing import number
 from .openai_compatible import ModelInvocationError, model_response_cost
 
 
-def request_input_bound(messages, tools=None):
+def request_input_bound(messages, tools=None, request_options=None):
     """模型请求与节点准入共用相同的保守序列化计数。"""
     payload = {"messages": messages, "tools": tools} if tools else messages
+    if request_options:
+        payload = {'request': payload, 'executionOptions': request_options}
     return len(json.dumps(payload, ensure_ascii=False).encode()) + 256
 
 
@@ -85,11 +87,13 @@ class TaskCallBudget:
             return dict(self.charged), deepcopy(self.records)
 
     def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None,
-                future_input_bound=None):
+                future_input_bound=None, request_options=None):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
-        input_bound = request_input_bound(messages, tools)
+        if request_options:
+            encoded = json.dumps({'request': json.loads(encoded), 'executionOptions': request_options}, ensure_ascii=False).encode()
+        input_bound = request_input_bound(messages, tools, request_options)
         if future_input_bound is not None:
             if type(future_input_bound) is not int or future_input_bound < input_bound or tools:
                 raise ValueError('invalid future review input envelope')
@@ -137,6 +141,9 @@ class TaskCallBudget:
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
                    'reserved_output_tokens': output_bound,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
+            if request_options:
+                row['request_options_sha256'] = hashlib.sha256(json.dumps(
+                    request_options, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
             if future_input_bound is not None:
                 row.update(reservation_basis='future-input-envelope', protected_input_bound=future_input_bound,
                            input_bound_confirmed=False)
@@ -146,6 +153,8 @@ class TaskCallBudget:
                 row['request_messages'] = deepcopy(messages)
                 if tools:
                     row['request_tools'] = deepcopy(tools)
+                if request_options:
+                    row['request_options'] = deepcopy(request_options)
             self.records.append(row)
         reservation = Reservation(model, messages, row, json_mode, tools)
         if self.on_reserve is not None:
@@ -279,7 +288,9 @@ class TaskCallBudget:
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
         if not response.usage_available or ((response.content.strip() or getattr(response, "tool_calls", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):
             raise ValueError('missing or unconfirmed model usage; reservation retained')
-        if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:
+        if (any(type(x) is not int or x < 0 for x in counts)
+                or response.cached_input_tokens > response.input_tokens
+                or response.reasoning_tokens > response.output_tokens):
             raise ValueError('invalid model usage; reservation retained')
         if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
             from .deepseek_official_pricing import pricing
@@ -287,6 +298,16 @@ class TaskCallBudget:
             model = replace(model, input_cost_per_1k=rates['inputPer1k'],
                 cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])
             row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
+        raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
+        write_known = raw_usage.get('cacheWriteUsageAvailable', 'cacheWriteTokens' in raw_usage) is True
+        input_rate, write_rate = model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None)
+        reference = getattr(model, 'reference_pricing', None)
+        if reference and reference.get('schedule'):
+            from .currency_pricing import reference_price
+            rates = dict(reference_price(reference, input_tokens=response.input_tokens).rates)
+            input_rate, write_rate = rates['input'], rates.get('cacheWrite', rates['input'])
+        if write_rate is not None and write_rate != input_rate and not write_known:
+            raise ValueError('unconfirmed cache write usage; reservation retained')
         actual = number(model_response_cost(model, response), 'model cost')
         with self.lock:
             if model.billing_unit in {'CNY', 'USD'}:
@@ -297,6 +318,8 @@ class TaskCallBudget:
                        output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
                        cache_usage_source=response.cache_usage_source,
                        cache_usage_available=response.cache_usage_source is not None, ttft_ms=response.ttft_ms,
+                       cache_write_tokens=raw_usage.get('cacheWriteTokens') if write_known else None,
+                       cache_write_usage_available=write_known,
                        first_tool_ms=response.first_tool_ms,
                        reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,
                        request_id=response.request_id, finish_reason=response.finish_reason,

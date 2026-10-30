@@ -27,11 +27,11 @@ class StageHybridRuntime:
         for role in ("efficient", "capable"):
             try:
                 model = self.admit(run, role, deepcopy(flow["messages"]), flow["tools"],
-                                   model_id=model_ids[role])
+                                   model_id=model_ids[role], execution_options=flow.get('executionOptions'))
                 cap = min(model.max_output_tokens, flow.get("maxTokens") or model.max_output_tokens)
-                if request_input_bound(flow["messages"], flow["tools"]) + cap > model.context_window:
+                if request_input_bound(flow["messages"], flow["tools"], flow.get('executionOptions')) + cap > model.context_window:
                     continue
-                cost = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))
+                cost = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"), flow.get('executionOptions'))
                 if cost <= run["budget"].remaining(model.billing_unit):
                     affordable.append(role)
                     execution_bounds[role] = (model.billing_unit, cost)

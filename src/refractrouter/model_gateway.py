@@ -29,6 +29,7 @@ from .model_tool_validation import request_requirements
 ROUTES = ("static", "stage", "task", "composite", "escalation", "advisor")
 MAX_BODY = 8 * 1024 * 1024
 GATEWAY_CONFIG_VERSION = "refractrouter-gateway-config-v1"
+GATEWAY_CONFIG_V2 = "refractrouter-gateway-config-v2"
 GATEWAY_PROTOCOL_VERSION = "refractrouter-model-gateway-v1"
 EXECUTION_OPTIONS = {"temperature", "top_p", "stop", "tool_choice", "parallel_tool_calls",
                      "response_format", "prompt_cache_key", "seed", "frequency_penalty", "presence_penalty"}
@@ -248,7 +249,7 @@ class HttpModelCaller:
         payload = {"model": target["model"], "messages": wire_messages(action["messages"]),
             provider.get("tokenLimitParameter", "max_tokens"): target["maxTokens"], "stream": False}
         payload.update(provider.get("requestOptions", {}))
-        if action["purpose"] in ("execute", "takeover"):
+        if action["purpose"] in ("execute", "redo", "takeover"):
             payload.update(options)
         if target.get("reasoning_effort"):
             payload["reasoning_effort"] = target["reasoning_effort"]
@@ -282,6 +283,10 @@ class HttpModelCaller:
 class ModelGateway:
     def __init__(self, config, runs_dir, caller=None):
         self.config = deepcopy(config)
+        schema = self.config.get('schemaVersion', GATEWAY_CONFIG_VERSION)
+        if schema not in (GATEWAY_CONFIG_VERSION, GATEWAY_CONFIG_V2):
+            raise ValueError('不支持的网关配置版本')
+        self.strict_protocol = schema == GATEWAY_CONFIG_V2
         self.planning = self.config["planningRouting"]
         compiled = compile_config(self.planning)
         self.runtime = PlanningRuntime(runs_dir)
@@ -337,32 +342,21 @@ class ModelGateway:
             os.fsync(f.fileno())
         os.replace(tmp, self.path)
 
-    def capabilities(self, strategy):
+    def capabilities(self, strategy, *, compiled=None):
         """保守公开执行路线的交集；判别模型不影响主模型参数声明。"""
-        c = compile_config(self.planning)
-        if strategy == 'static':
-            ids = [c['roles'].get('efficient')]
-            if c['parameters']['staticMode'] == 'random':
-                ids.append(c['roles'].get('capable'))
-        elif strategy == 'task':
-            ids = [*c['task']['pool'], c['task']['fallback']]
-        elif strategy == 'composite':
-            composite = c['composite']
-            ids = ([*composite['task']['pool'], composite['takeover']]
-                   if composite['mode'] == 'configured'
-                   else [c['roles'].get('efficient'), c['roles'].get('capable')])
-        elif strategy == 'escalation':
-            ids = [c['escalation']['initial'], c['escalation']['takeover']]
-        elif strategy == 'advisor':
-            ids = [c['advisor'].get('executor', c['roles'].get('efficient'))]
-        else:
-            ids = [c['roles'].get('efficient'), c['roles'].get('capable')]
-        models = [c['models'][key] for key in dict.fromkeys(ids) if key in c['models']]
+        c = compiled if compiled is not None else compile_config(self.planning)
+        from .protocol_admission import REQUEST_FEATURES, execution_models
+        models = execution_models(c, strategy)
         efforts = {m.request_options.get('reasoning_effort', self.config.get('providers', {})
             .get(m.provider, {}).get('requestOptions', {}).get('reasoning_effort')) for m in models}
         common = next(iter(efforts)) if len(efforts) == 1 else None
         return {'schemaVersion': 'refract-model-capabilities/1',
-            'inputModalities': ['text'], 'outputModalities': ['text'], 'toolTypes': ['function'],
+            'inputModalities': ['text'], 'outputModalities': ['text'],
+            'toolTypes': ['function'] if not self.strict_protocol or (models and all(
+                (m.capabilities or {}).get('toolCalling') == 'verified' for m in models)) else [],
+            'capabilityAdmission': 'all-executor-protocol-admission-v1' if self.strict_protocol else 'legacy-unverified',
+            'verifiedRequestFeatures': [name for name in REQUEST_FEATURES if models and all(
+                (m.capabilities or {}).get('requestFeatures', {}).get(name) == 'verified' for m in models)],
             'historyMode': 'full', 'reasoningPolicy': 'frozen-role-assertion',
             'acceptedReasoningEfforts': [common] if common else [],
             'contextWindow': min((m.context_window for m in models), default=0),
@@ -471,12 +465,6 @@ class ModelGateway:
         strategy = str(request.get('model', '')).removeprefix('refract/')
         if strategy not in ROUTES or request.get('n', 1) != 1:
             raise ValueError("请选择 refract/static、stage、task、composite、escalation 或 advisor；只支持 n=1")
-        if 'reasoning_effort' in request:
-            effort = request['reasoning_effort']
-            # Hermes 等客户端用 none 表示不提出档位要求；真实模型仍按冻结角色配置执行。
-            if (not isinstance(effort, str) or
-                    (effort != 'none' and effort not in self.capabilities(strategy)['acceptedReasoningEfforts'])):
-                raise ValueError('reasoning_effort 与冻结执行角色不一致；请省略该参数或使用模型目录声明的值')
         if not isinstance(request.get('stream', False), bool):
             raise ValueError("stream 必须是布尔值")
         if request.get('stream_options') not in (None, {}, {'include_usage': True}, {'include_usage': False}):
@@ -491,8 +479,19 @@ class ModelGateway:
         messages = chat_messages(request.get('messages'))
         schemas = tool_schemas(request.get('tools', []))
         options = {key: deepcopy(request[key]) for key in EXECUTION_OPTIONS if key in request}
+        from .protocol_admission import admit_all, request_features
+        request_features(options, schemas)
         with self.lock:
             identity = self._identity(request, scope)
+            active = self.runtime.runs.get(digest(identity))
+            compiled = active['config'] if active is not None else compile_config(self.planning)
+            if active is not None and active['strategy'] != strategy:
+                raise ValueError('当前任务的路由策略已冻结；新任务才能切换策略')
+            if 'reasoning_effort' in request:
+                effort = request['reasoning_effort']
+                if (not isinstance(effort, str) or (effort != 'none' and effort not in
+                        self.capabilities(strategy, compiled=compiled)['acceptedReasoningEfforts'])):
+                    raise ValueError('reasoning_effort 与冻结执行角色不一致；请省略该参数或使用模型目录声明的值')
             for message in messages:
                 calls = [b for b in message["content"] if b["type"] == "tool-call"]
                 entries = [self.state["tools"].get(scope + ':' + b["id"]) for b in calls]
@@ -505,6 +504,8 @@ class ModelGateway:
             existing_owner = self.state.get('outcomes', {}).get(digest(identity))
             if existing_owner is not None and existing_owner != owner:
                 raise ValueError('结果任务所有权冲突；拒绝覆盖访问域')
+            if self.strict_protocol:
+                admit_all(compiled, strategy, messages, schemas, options, cap, self.runtime.admit)
             begun = self.runtime.handle({'op': 'begin', 'identity': identity, 'config': self.planning, 'strategy': strategy})
             run_id = begun['runId']
             self.state.setdefault('outcomes', {}).setdefault(run_id, owner)
@@ -539,14 +540,33 @@ class ModelGateway:
                             del all_facts[run_id]
                     raise
             action = self.runtime.handle({'op': 'step', 'runId': run_id, 'messages': messages,
-                'tools': schemas, 'toolEvidence': evidence,
+                'tools': schemas, 'toolEvidence': evidence, 'executionOptions': options,
                 'toolRequirements': request_requirements(messages, schemas),
                 'requireConfirmedToolEvidence': tool_policy == 'confirmed',
                 'taskToolEvidence': [e for e in evidence if
                     (self.state['tools'].get(scope + ':' + e['callId']) or {}).get('identity') == identity],
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
+        total_cached, total_reasoning = 0, 0
         meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}
+        def deliver_text(text, call_id, mode):
+            row = next(r for r in self.runtime.runs[run_id]['budget'].records if r.get('call_id') == call_id)
+            if cancelled() or row.get('deliveryRejected'):
+                return False
+            row['deliveryAttempted'] = True
+            if on_text(meta, text) is False:
+                row['deliveryRejected'] = True
+                self.runtime.persist(self.runtime.runs[run_id])
+                return False
+            first = 'userFirstTextMs' not in row
+            if first:
+                row['userFirstTextMs'] = round((time.monotonic() - started) * 1000)
+                row['deliveryMode'] = mode
+                row['userFirstTextOrigin'] = 'gateway-request-start'
+            row['releasedTextBytes'] = row.get('releasedTextBytes', 0) + len(text.encode())
+            if first:
+                self.runtime.persist(self.runtime.runs[run_id])
+            return True
         try:
             while action['action'] in ('call', 'wait'):
                 if cancelled():
@@ -557,15 +577,7 @@ class ModelGateway:
                     continue
                 if on_text is not None and not action['buffered'] and hasattr(self.caller, 'stream'):
                     def deliver(text):
-                        if cancelled(): return
-                        run = self.runtime.runs[run_id]
-                        row = run['flow']['pending'][1].row
-                        if 'userFirstTextMs' not in row:
-                            row['userFirstTextMs'] = round((time.monotonic() - started) * 1000)
-                            row['deliveryMode'] = 'live-text'
-                            self.runtime.persist(run)
-                        row['releasedTextBytes'] = row.get('releasedTextBytes', 0) + len(text.encode())
-                        on_text(meta, text)
+                        return deliver_text(text, action['callId'], 'live-text')
                     response = self.caller.stream(action, options, deliver)
                 else:
                     response = self.caller(action, options)
@@ -573,6 +585,10 @@ class ModelGateway:
                 targets[action['callId']] = deepcopy(action['model'])
                 total_in += response.input_tokens
                 total_out += response.output_tokens
+                from .cache_usage import observed_details
+                cached, reasoning = observed_details(response)
+                total_cached = total_cached + cached if total_cached is not None and cached is not None else None
+                total_reasoning = total_reasoning + reasoning if total_reasoning is not None and reasoning is not None else None
                 # 先结算已派发调用，取消不释放已花费或未知用量。
                 if cancelled():
                     self.runtime.handle({'op': 'cancel', 'runId': run_id})
@@ -580,6 +596,8 @@ class ModelGateway:
                     'response': {'content': response.content, 'inputTokens': response.input_tokens,
                         'outputTokens': response.output_tokens, 'cachedInputTokens': response.cached_input_tokens,
                         'reasoningTokens': response.reasoning_tokens, 'usageAvailable': response.usage_available,
+                        'cacheUsageSource': response.cache_usage_source, 'rawUsage': response.raw_usage,
+                        'routerOperationMs': action.get('routerOperationMs'),
                         'finishReason': response.finish_reason, 'toolCalls': list(response.tool_calls),
                         'latencyMs': response.latency_ms, 'requestId': response.request_id, 'ttftMs': response.ttft_ms}})
             if action['action'] != 'release':
@@ -592,6 +610,16 @@ class ModelGateway:
                     'finish_reason': selected.finish_reason}],
                 'usage': {'prompt_tokens': total_in, 'completion_tokens': total_out,
                           'total_tokens': total_in + total_out}}
+            if total_cached is not None:
+                result['usage']['prompt_tokens_details'] = {'cached_tokens': total_cached}
+            if total_reasoning is not None:
+                result['usage']['completion_tokens_details'] = {'reasoning_tokens': total_reasoning}
+            selected_row = next(r for r in self.runtime.runs[run_id]['budget'].records if r.get('call_id') == action['callId'])
+            if selected_row.get('deliveryRejected'):
+                raise ConnectionError('客户端未接收已审核文本')
+            if on_text is not None and selected.content and not selected_row.get('deliveryAttempted'):
+                if not deliver_text(selected.content, action['callId'], 'buffered-release'):
+                    raise ConnectionError('客户端未接收已审核文本')
             with self.lock:
                 prefix = history_digest(request['messages'] + [message])
                 for call in selected.tool_calls:
@@ -691,7 +719,7 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             wire, sent, lost = None, False, False
             def send(data):
                 nonlocal sent, lost
-                if lost: return
+                if lost: return False
                 try:
                     if not sent:
                         self.send_response(200)
@@ -704,8 +732,10 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                         sent = True
                     self.wfile.write(data)
                     self.wfile.flush()
+                    return True
                 except (BrokenPipeError, ConnectionResetError, TimeoutError):
                     lost = True
+                    return False
             def disconnected():
                 if lost: return True
                 if not select.select([self.connection], [], [], 0)[0]: return False
@@ -751,7 +781,7 @@ def load_gateway_config(path):
     allowed = {'schemaVersion', 'authTokenEnv', 'providers', 'planningRouting'}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError('网关配置不是对象或包含未知字段')
-    if raw.get('schemaVersion', GATEWAY_CONFIG_VERSION) != GATEWAY_CONFIG_VERSION:
+    if raw.get('schemaVersion', GATEWAY_CONFIG_VERSION) not in (GATEWAY_CONFIG_VERSION, GATEWAY_CONFIG_V2):
         raise ValueError('不支持的网关配置版本')
     if 'authTokenEnv' in raw and (not isinstance(raw['authTokenEnv'], str) or not raw['authTokenEnv']):
         raise ValueError('authTokenEnv 必须是非空环境变量名称')

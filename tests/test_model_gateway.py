@@ -732,7 +732,7 @@ def test_private_reasoning_preserved_only_for_accepted_same_model_history(tmp_pa
     gw.close()
 
 
-def test_private_reasoning_removed_on_unverified_cross_model_history(tmp_path):
+def test_private_reasoning_requires_verified_cross_model_admission(tmp_path):
     cfg = configuration('static')
     caller = Caller(replace(reply('开始',[call()]),replay_messages=({'reasoning_content':'私有推理'},)),reply())
     gw = gateway(tmp_path,caller,cfg)
@@ -740,7 +740,9 @@ def test_private_reasoning_removed_on_unverified_cross_model_history(tmp_path):
     gw.planning['roles']['efficient'] = 'large'
     continuation = follow(req, first)
     continuation['metadata'] = {'refract_session':'different','refract_task':'1'}
-    gw.complete(continuation)
-    assert caller.actions[-1]['model']['id'] == 'large'
-    assert all('reasoning_content' not in m for m in wire_messages(caller.actions[-1]['messages']))
+    from copy import deepcopy
+    saved = deepcopy(continuation)
+    with pytest.raises(ValueError, match='保留原始历史'):
+        gw.complete(continuation)
+    assert len(caller.actions) == 1 and continuation == saved
     gw.close()

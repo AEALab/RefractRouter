@@ -829,7 +829,7 @@ type History={records:Array<{runId:string;strategy:string;status:string;timing?:
   configuration?:{advisor?:{threshold?:number};escalation?:{threshold?:number};jev?:{actionGate?:string}};
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
   referenceCosts?:{currency:string;occupied:number;limit:number}|null;
-  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;billing_mode?:'subscription'|'metered';dispatch_at?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number};review_status?:string}>;
+  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;billing_mode?:'subscription'|'metered';dispatch_at?:string;latency_ms?:number;ttft_ms?:number;userFirstTextMs?:number;deliveryMode?:string;routerOperationMs?:number;routerRoundTripMs?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number};review_status?:string}>;
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
@@ -1010,11 +1010,11 @@ function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutom
         <p>{traceAmount(r.costs.production)} {r.billingUnit}</p>}
       {r.billingWarning&&<p role="status">{r.billingWarning}</p>}
       {r.calls.some(c=>c.status==='unknown-usage'||c.status==='reserved')&&<p role="status">以上金额包含尚未结算的预留，不等于已确认扣费。用量待核对的调用不会自动重发。</p>}
-      <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','首字／总耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
+      <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','上游首 token／调用耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
           const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{callDisposition(c)}{c.review_status==='revised-unreviewed'?' · 未复审':''}{c.review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
-          <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.billing_mode==='subscription'?'订阅参考成本：':''}{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>{r.referenceCosts?'累计参考占用':'累计占用'} {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
+          <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.billing_mode==='subscription'?'订阅参考成本：':''}{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>{r.referenceCosts?'累计参考占用':'累计占用'} {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}<br/><small>宿主文本交付：{c.userFirstTextMs?.toFixed(0)??'未观测'} ms{c.deliveryMode==='buffered-release'?'（缓冲后）':''}</small></td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.backend==='jev'||d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}

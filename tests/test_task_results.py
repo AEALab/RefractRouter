@@ -150,7 +150,7 @@ def test_late_cancel_receipt_settles_fee_without_releasing_candidate(tmp_path):
     assert receipt(runtime, run, action)["action"] == "stop"
     view = query(runtime, run)
     assert view["calls"][0]["status"] == "billed"
-    assert view["candidates"][0]["routerDisposition"] == "unknown"
+    assert view["candidates"][0]["routerDisposition"] == "discarded"
     assert view["candidates"][0]["acceptanceBySource"]["user"] == "unknown"
 
 
