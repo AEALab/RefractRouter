@@ -349,6 +349,9 @@ class ChatResponse:
     cache_usage_source: str | None = None
     ttft_ms: int | None = None
     first_tool_ms: int | None = None
+    actual_model: str | None = None
+    provider_revision: str | None = None
+    price_binding_confirmed: bool | None = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -729,6 +732,9 @@ class OpenAICompatibleClient:
         reasoning_count, reasoning_valid = reasoning_usage(usage, output_count)
         return ChatResponse(
             content=content,
+            actual_model=data.get('model') if type(data.get('model')) is str and 0<len(data['model'])<=256 else None,
+            provider_revision=data.get('system_fingerprint') if type(data.get('system_fingerprint')) is str
+                and 0<len(data['system_fingerprint'])<=256 else None,
             input_tokens=input_count if type(input_count) is int else 0,
             output_tokens=output_count if type(output_count) is int else 0,
             cached_input_tokens=cached,

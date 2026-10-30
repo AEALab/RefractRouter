@@ -1313,6 +1313,11 @@ class PlanningRuntime(StageHybridRuntime):
             attempts=1, finish_reason=raw.get("finishReason"), request_id=raw.get("requestId"),
             usage_available=raw.get("usageAvailable") is True, tool_calls=tuple(raw.get("toolCalls", [])),
             ttft_ms=raw.get("ttftMs"), replay_state=raw.get("replayState"),
+            actual_model=(raw.get('observedActualModel') if type(raw.get('observedActualModel')) is str
+                and 0<len(raw['observedActualModel'])<=256 else None),
+            provider_revision=(raw.get('observedProviderRevision') if type(raw.get('observedProviderRevision')) is str
+                and 0<len(raw['observedProviderRevision'])<=256 else None),
+            price_binding_confirmed=(raw.get('priceBindingConfirmed') if type(raw.get('priceBindingConfirmed')) is bool else None),
             raw_usage={"cacheWriteTokens": raw.get("cacheWriteTokens", 0),
                        "cacheWriteUsageAvailable": "cacheWriteTokens" in raw, "providerUsage": raw.get("rawUsage")},
             cache_usage_source=cache_source)

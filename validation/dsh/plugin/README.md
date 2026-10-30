@@ -4,7 +4,7 @@ DSH 插件是独立 Python Router 的宿主适配层，提供模型入口、配�
 模型选择、审核、预算与结算由 Python 负责；工具执行、权限、上下文压缩、会话和委派由 DSH 负责。
 标准 Base URL 接入不依赖这个插件。
 
-当前开发预览：插件 **0.33.21**、Python 核心 **0.16.33**；已验证 DSH **0.1.5-rc.3**、
+当前开发预览：插件 **0.33.21**、Python 核心 **0.16.34**；已验证 DSH **0.1.5-rc.3**、
 Node.js **≥22.19.0 且 <23**、pnpm **10.15.0**。核对日期：2026-10-10。
 
 ## 用户下载安装
@@ -14,7 +14,7 @@ wheel、tgz、源码及 SHA-256 文件，也可阅读[仓库指南](../../../doc
 插件尚未公开到 npm，不要通过同名 registry 包安装。
 
 ```bash
-uv tool install ./refractrouter-0.16.33-py3-none-any.whl
+uv tool install ./refractrouter-0.16.34-py3-none-any.whl
 uv tool update-shell
 export PATH="$(uv tool dir --bin):$PATH"
 refractagent --help
