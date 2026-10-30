@@ -1,0 +1,53 @@
+{
+  "status": "pass",
+  "scope": "installed-wheel-and-tgz-native-dsh-demo",
+  "paid_model_calls": 0,
+  "live_acceptance": false,
+  "versions": {
+    "dsh": "0.1.5-rc.3",
+    "node": "v22.22.3"
+  },
+  "artifacts": {
+    "refractrouter-0.16.34-py3-none-any.whl": "746accd7720d6a4ac86a3116a4bc17172df253e45fdc88080b24b7abda9615c8",
+    "dsh-refractrouter-validation-0.33.21.tgz": "c7f787ac596e7d4b192f6fa46cc7d683992a432a1a46a81a3d640daef92fe4f7"
+  },
+  "governed_gateway": {
+    "status": "pass",
+    "scope": "installed-wheel-governed-http",
+    "paid_model_calls": 0,
+    "upstream_fixture_calls": 4,
+    "responses_tool_reasoning_roundtrip": true,
+    "unicode_buffered_sse_usage": true,
+    "inflight_version_pinned_after_rollback": true,
+    "model_identity_drift_stops_trial": true,
+    "restart_no_redispatch": true,
+    "unknown_fees_preserved": true,
+    "pending_readyz_503_history_readable": true,
+    "fixture_evidence_only": true,
+    "actual_strategy_benefit_qualified": false,
+    "actual_provider_compatibility_proven": false,
+    "parent_child_budget_enforced": false
+  },
+  "gateway_protocol": {
+    "status": "pass",
+    "scope": "installed-wheel-http-gateway-v2",
+    "paid_model_calls": 0,
+    "upstream_fixture_calls": 5,
+    "tool_reasoning_roundtrip": true,
+    "cache_and_reasoning_details": true,
+    "unicode_sse": true,
+    "all_candidate_rejection": true,
+    "actual_provider_compatibility_proven": false
+  },
+  "configured_providers": null,
+  "sourceCommit": "3167685dc5304387b3afad44890ffd6756f67003",
+  "managementConsole": {
+    "status": "pass",
+    "sourceOutside": true,
+    "managementConsoleEntry": "refractrouter-release",
+    "exitCode": 0,
+    "paidModelCalls": 0,
+    "installedModule": "/private/tmp/refractrouter-211-console-env-01/lib/python3.12/site-packages/refractrouter/release_governance.py",
+    "coreSha256": "e8229089bc022da4a2105f56cc1d285e5ae38abc4538123f75ff28d46f376d16"
+  }
+}
