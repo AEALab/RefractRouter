@@ -1,0 +1,429 @@
+{
+  "billing": {
+    "actualProviderDebitVerified": false,
+    "incrementalCashConditionalOnPlanNoOverageCNY": 0,
+    "maxStandardAFP": 4404.0192,
+    "strongPer1kInputAndOutput": 0.45,
+    "unit": "standardAFP",
+    "weakPer1kInputAndOutput": 0.05
+  },
+  "developmentRevision": 1,
+  "funding": {
+    "cashLimitCNY": "300",
+    "laterResearchCallsBeforeThisBatch": 14,
+    "priorKnownStandardAFP": "18853.33370",
+    "priorProtectedCashCNY": "26.3507702502422",
+    "priorUnknownCashCNYAlreadyIncluded": "12.058624",
+    "priorUnknownStandardAFP": "5041.30560",
+    "scope": "本研究已核对账本；不是整个账户余额，未知预留不释放。",
+    "sourcePath": "/Users/chun-hsianglee/.codex/worktrees/whole-task-routing/RefractRouter/.research-private/whole-task-development-20261030-v3/financial-before.json",
+    "sourceSha256": "d2fdf6204f083f2910935086bbb1b87308f7b8c978cec8a74b93c7f701f5a5f7",
+    "sourceTimeUTC": "2026-10-30T05:16:58.759981+00:00"
+  },
+  "heldout": {
+    "materializedCount": 0,
+    "perKind": 8,
+    "plannedCount": 24,
+    "status": "仅预留名额；开发筛选有增益后才独立采集，当前无留出结论。"
+  },
+  "limits": {
+    "batchTimeboxSeconds": 10800,
+    "httpAutomaticRetries": 0,
+    "maxCalls": 36,
+    "maxDevelopmentRevisions": 1,
+    "maxInputBytes": 512000,
+    "maxToolQueriesPerTask": 8,
+    "maxWFCallsPerTask": 4,
+    "perCallTimeoutSeconds": 600
+  },
+  "modelCallsAtFreeze": 0,
+  "models": {
+    "S0": "glm-5.3",
+    "W0": "glm-5.3-flash",
+    "WF": "glm-5.3-flash"
+  },
+  "oldTaskUse": "旧两题不计新样本，当前六项目与历史开发题项目分离；训练污染未知。",
+  "order": [
+    {
+      "arm": "W0",
+      "taskId": "dev-click"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-click"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-click"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-platformdirs"
+    },
+    {
+      "arm": "W0",
+      "taskId": "dev-platformdirs"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-platformdirs"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-urllib3"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-urllib3"
+    },
+    {
+      "arm": "W0",
+      "taskId": "dev-urllib3"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-cachetools"
+    },
+    {
+      "arm": "W0",
+      "taskId": "dev-cachetools"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-cachetools"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-httpcore"
+    },
+    {
+      "arm": "W0",
+      "taskId": "dev-httpcore"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-httpcore"
+    },
+    {
+      "arm": "WF",
+      "taskId": "dev-anyio"
+    },
+    {
+      "arm": "W0",
+      "taskId": "dev-anyio"
+    },
+    {
+      "arm": "S0",
+      "taskId": "dev-anyio"
+    }
+  ],
+  "output": {
+    "contextWindow": 1024000,
+    "costContextEnvelopeTokens": 1048576,
+    "reasoningEffort": "low",
+    "thinking": {
+      "type": "enabled"
+    },
+    "wireAnswerTokens": 131072
+  },
+  "productPathChanged": false,
+  "releaseAllowed": false,
+  "revision": {
+    "networkCause": "前批14次请求传输失败，未取得响应，具体底层原因未知；HEAD只证明当前连通。",
+    "newIndependentTasks": 0,
+    "previousLedgerSha256": "e0d759685cb06d9f73719bbb303883db931d7cbf9996e72e808482c817852b67",
+    "previousManifestSha256": "e096c462ae0701ce91733d9c575bd770e63904ae64c441d6dc9ec04d2ddbc546",
+    "previousResultsRegraded": false,
+    "reason": "多份原始答卷使用Markdown代码块，明确违约；仅统一强调直接JSON。",
+    "scoringSemanticsChanged": false
+  },
+  "schemaVersion": "whole-task-development-v1",
+  "seed": 20261030,
+  "sourceDesign": "真实公开快照上的人工受控题；不是自然缺陷票据或随机总体样本。",
+  "sourcesManifestSha256": "f3447cad8d7d4da055fade425fa7ff26c39435436499584a69375397aaf2a474",
+  "stopping": "认证/未知用量/材料或证据漂移停止整批；已知题目失败计失败且保留费用。完成六题后，有明确质量回退即停止配置扩量；无工具增益或精度不足均保持默认，不自动追样本。",
+  "tasks": [
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "build_backend": {
+            "question": "build-system.build-backend 的精确字符串。",
+            "type": "str"
+          },
+          "copyright": {
+            "question": "LICENSE.txt 首行版权文字的精确字符串。",
+            "type": "str"
+          },
+          "minimum_python": {
+            "question": "project.requires-python 的精确字符串。",
+            "type": "str"
+          }
+        },
+        "kind": "确定性提取",
+        "patchRequirement": "本题只分析，edits 必须为 []。",
+        "taskId": "dev-click"
+      },
+      "criteriaSha256": "8a2e4fefb2687a08abc167b36b15569506c2ac3c4c99dc876f578e0c725bd45c",
+      "files": [
+        {
+          "blobSha1": "7c9a10b8760ff658ecf3bfc90a12ab138772e4eb",
+          "bytes": 5324,
+          "path": "pyproject.toml",
+          "sha256": "327b296ab1fc9280c106c71efea961f71dffa5d8f69d85a88eba758e0f440636",
+          "url": "https://github.com/pallets/click/blob/2247b35ea1c47c727d7a06e51fa280e12a863ff6/pyproject.toml"
+        },
+        {
+          "blobSha1": "d12a849186982399c537c5b9a8fd77bf2edd5eab",
+          "bytes": 1475,
+          "path": "LICENSE.txt",
+          "sha256": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d",
+          "url": "https://github.com/pallets/click/blob/2247b35ea1c47c727d7a06e51fa280e12a863ff6/LICENSE.txt"
+        }
+      ],
+      "half": 0,
+      "host": "visible/dev-click-host.json",
+      "hostSha256": "92c343947c401f31d5222869d6a02e33b82a2e71c8660288ecc4f095bef57044",
+      "kind": "确定性提取",
+      "repository": "pallets/click",
+      "root": "visible/dev-click",
+      "sourceCommit": "2247b35ea1c47c727d7a06e51fa280e12a863ff6",
+      "taskId": "dev-click"
+    },
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "ensure_exists_default": {
+            "question": "顶层 user_cache_dir 的 ensure_exists 默认布尔值。",
+            "type": "bool"
+          },
+          "minimum_python": {
+            "question": "project.requires-python 的精确字符串。",
+            "type": "str"
+          },
+          "opinion_default": {
+            "question": "顶层 user_cache_dir 的 opinion 默认布尔值。",
+            "type": "bool"
+          }
+        },
+        "kind": "确定性提取",
+        "patchRequirement": "本题只分析，edits 必须为 []。",
+        "taskId": "dev-platformdirs"
+      },
+      "criteriaSha256": "f59cd8f301c26ce8d2f94da2a78f71dea43436954fed763f8bd619fe1d1804ab",
+      "files": [
+        {
+          "blobSha1": "93ee82b1da7de26a6b472fc749414d7b67a805ba",
+          "bytes": 7899,
+          "path": "pyproject.toml",
+          "sha256": "50342917b623140b23a06115c496a72e1f61fb28228318ffc606f9729a479b5b",
+          "url": "https://github.com/tox-dev/platformdirs/blob/c40ff0bd1589cd21b6e42dab7c8cb26f699983c1/pyproject.toml"
+        },
+        {
+          "blobSha1": "be0eb4cd51fdf8ef05322dd9b898096caa0dcfb3",
+          "bytes": 46177,
+          "path": "src/platformdirs/__init__.py",
+          "sha256": "4d365af6e9ed004a91b9c489aa06d986d9bf1ced0f56487d140a32bfcb578ea0",
+          "url": "https://github.com/tox-dev/platformdirs/blob/c40ff0bd1589cd21b6e42dab7c8cb26f699983c1/src/platformdirs/__init__.py"
+        }
+      ],
+      "half": 1,
+      "host": "visible/dev-platformdirs-host.json",
+      "hostSha256": "a4a20a41f5bc787741efa7f7d507b6848001d1feabddb9b3321a6c8253e1fe3a",
+      "kind": "确定性提取",
+      "repository": "tox-dev/platformdirs",
+      "root": "visible/dev-platformdirs",
+      "sourceCommit": "c40ff0bd1589cd21b6e42dab7c8cb26f699983c1",
+      "taskId": "dev-platformdirs"
+    },
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "constructor_total": {
+            "question": "Retry.__init__ 自己的 total 默认整数。",
+            "type": "int"
+          },
+          "default_backoff_max": {
+            "question": "Retry 默认退避上限秒数整数；引用默认值和构造器使用。",
+            "type": "int"
+          },
+          "pool_default_total": {
+            "question": "连接池未传 retries 时使用的 Retry.DEFAULT 的 total 整数；引用默认对象与池内使用两端。",
+            "type": "int"
+          }
+        },
+        "kind": "跨文件受控修改",
+        "patchRequirement": "将连接池未显式配置重试时使用的默认次数从3改5，将默认退避秒数上限从120改240。保留 Retry 构造器 total=10、显式传入值和其他全部行为。",
+        "taskId": "dev-urllib3"
+      },
+      "criteriaSha256": "034f1cbf0f341f4791272dd25afbe1f844caf41d476583f67cb5c2cb96e5a15e",
+      "files": [
+        {
+          "blobSha1": "9c98053ac56321ecb06c2185496d19254724462e",
+          "bytes": 20624,
+          "path": "src/urllib3/util/retry.py",
+          "sha256": "527b808174371a69bb97c31b2f33ee30d4c0e53dd629697942f574af9bc9fc75",
+          "url": "https://github.com/urllib3/urllib3/blob/2aa7e9c35234a90a1ce09b84dc7b706a6d604674/src/urllib3/util/retry.py"
+        },
+        {
+          "blobSha1": "1c8a56597c5728a2a377b3399b427403f753915e",
+          "bytes": 45818,
+          "path": "src/urllib3/connectionpool.py",
+          "sha256": "e076a5be110fcbcbde4ffd4af77686763632601fa00e2f8274e8b3ecb2014a99",
+          "url": "https://github.com/urllib3/urllib3/blob/2aa7e9c35234a90a1ce09b84dc7b706a6d604674/src/urllib3/connectionpool.py"
+        }
+      ],
+      "half": 0,
+      "host": "visible/dev-urllib3-host.json",
+      "hostSha256": "68b879731dbec074266488350ce025726dc55f67bd0d826dee8a4593ee3e683f",
+      "kind": "跨文件受控修改",
+      "repository": "urllib3/urllib3",
+      "root": "visible/dev-urllib3",
+      "sourceCommit": "2aa7e9c35234a90a1ce09b84dc7b706a6d604674",
+      "taskId": "dev-urllib3"
+    },
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "bare_maxsize": {
+            "question": "直接写 @lru_cache 时 callable 分支传给 LRUCache 的容量整数。",
+            "type": "int"
+          },
+          "cache_base_class": {
+            "question": "func.py 使用的 LRUCache 在定义文件中的直接父类名称字符串；引用导入和定义两端。",
+            "type": "str"
+          },
+          "default_maxsize": {
+            "question": "lru_cache 函数签名的默认容量整数。",
+            "type": "int"
+          }
+        },
+        "kind": "跨文件受控修改",
+        "patchRequirement": "只将 lru_cache 的默认容量128改256，同时覆盖 @lru_cache 与 @lru_cache()。保留显式 maxsize、None 无界、typed 以及所有其他装饰器行为。",
+        "taskId": "dev-cachetools"
+      },
+      "criteriaSha256": "61ccc97d57802911899a671bbed11ede4f06c922495104e68dee22354a0a56b8",
+      "files": [
+        {
+          "blobSha1": "07116bd9eae98994adb5943e50a14efc3370223a",
+          "bytes": 3275,
+          "path": "src/cachetools/func.py",
+          "sha256": "87724e4fc82303fd5172cc9fd03c7aaf6a767c6c477f3cb74a245fc45ebf7816",
+          "url": "https://github.com/tkem/cachetools/blob/505aece98f29a1aca26c4ae5ba57e03a8a3397f3/src/cachetools/func.py"
+        },
+        {
+          "blobSha1": "3821755af81c413eb8d9e8bd13bdffb8c60a3d73",
+          "bytes": 24738,
+          "path": "src/cachetools/__init__.py",
+          "sha256": "5b3785625d8c6d073b52213c1a12bb9b599b3a55e7017cb25c55f61da741ce4c",
+          "url": "https://github.com/tkem/cachetools/blob/505aece98f29a1aca26c4ae5ba57e03a8a3397f3/src/cachetools/__init__.py"
+        }
+      ],
+      "half": 1,
+      "host": "visible/dev-cachetools-host.json",
+      "hostSha256": "6ce54bb231217b2c4a7241545b2a86d03c8fdda1729faff0de80dd6e015a795d",
+      "kind": "跨文件受控修改",
+      "repository": "tkem/cachetools",
+      "root": "visible/dev-cachetools",
+      "sourceCommit": "505aece98f29a1aca26c4ae5ba57e03a8a3397f3",
+      "taskId": "dev-cachetools"
+    },
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "default_extensions": {
+            "question": "Request 未传 extensions 时 self.extensions 的值，使用原生对象。",
+            "type": "dict"
+          },
+          "effective_default_keepalive": {
+            "question": "ConnectionPool 默认构造参数下，最终 _max_keepalive_connections 的有效整数；须包含默认参数及上限计算证据。",
+            "type": "int"
+          },
+          "pool_timeout_key": {
+            "question": "handle_request 从 timeout 映射取等待连接超时的键名字符串。",
+            "type": "str"
+          }
+        },
+        "kind": "证据约束分析",
+        "patchRequirement": "本题只分析，edits 必须为 []。",
+        "taskId": "dev-httpcore"
+      },
+      "criteriaSha256": "e2ea3238d5a2a8956b5436e32433ed597925f998e6794f64e89152bf76a8df15",
+      "files": [
+        {
+          "blobSha1": "4b26f9c63032be5c6c932b9d1339c43d4029368e",
+          "bytes": 16953,
+          "path": "httpcore/_sync/connection_pool.py",
+          "sha256": "c9f87e893f679d23053ba00ee971904780c0348f2aa96987a3ff56a14f40279d",
+          "url": "https://github.com/encode/httpcore/blob/10a658221deb38a4c5b16db55ab554b0bf731707/httpcore/_sync/connection_pool.py"
+        },
+        {
+          "blobSha1": "8a65f13347d6621289a166d08123cbc8e1ad0157",
+          "bytes": 17623,
+          "path": "httpcore/_models.py",
+          "sha256": "20ed8271771da68bd170b4dd185181e91c8165d126da1fd33a6a02738ac42a1a",
+          "url": "https://github.com/encode/httpcore/blob/10a658221deb38a4c5b16db55ab554b0bf731707/httpcore/_models.py"
+        }
+      ],
+      "half": 0,
+      "host": "visible/dev-httpcore-host.json",
+      "hostSha256": "3f902c2d6156bb40ca75566dcffbe6703ecca54fc44a5f4da944137cf3187270",
+      "kind": "证据约束分析",
+      "repository": "encode/httpcore",
+      "root": "visible/dev-httpcore",
+      "sourceCommit": "10a658221deb38a4c5b16db55ab554b0bf731707",
+      "taskId": "dev-httpcore"
+    },
+    {
+      "criteria": {
+        "contract": "只输出一个 JSON 对象，恰含 answers、evidence、edits。answers 含本题列出的全部字段，值使用标注的原生类型，不写解释文字。evidence 使用同名字段，每个值是1至8条 {\"path\":\"精确相对路径\",\"quote\":\"连续、逐字符原文\"}；每条引用须支持该字段，不能附无关或重复引用。引用最多4096 UTF-8字节。要解释跨文件的事实须引用两端。数值/默认值引用须带完整赋值或参数声明，条件行为引用须带相关条件与结果，不能只抄一个数或单个词。edits 为原文替换数组，每项恰含 path、before、after，before 在当前文件唯一；最多8项、每段最多8192字节。修改仅限明确要求的常量/默认参数，其他 Python AST 行为不得变化；无需格式化，不运行代码。answers 回答修改前快照事实，edits 提交所要求修改。无修改任务的 edits 必须为 []。 输出必须直接为 JSON 对象，禁止 Markdown 代码块、禁止 ``` 或 ```json 包装，禁止对象前后的说明文字。只输出从 { 到 } 的 JSON。",
+        "fields": {
+          "clock_expression": {
+            "question": "AsyncIOBackend.current_time 返回的时钟表达式精确字符串，并引用 move_on_after 使用该时钟和后端定义两端。",
+            "type": "str"
+          },
+          "move_on_after_starts_at_call": {
+            "question": "move_on_after 计时是否从函数调用时开始（而非进入上下文时），使用布尔值。",
+            "type": "bool"
+          },
+          "no_task_deadline_sign": {
+            "question": "AsyncIOBackend.current_effective_deadline 没有当前任务时返回无穷的符号，正无穷写整数1、负无穷写整数-1。",
+            "type": "int"
+          }
+        },
+        "kind": "证据约束分析",
+        "patchRequirement": "本题只分析，edits 必须为 []。",
+        "taskId": "dev-anyio"
+      },
+      "criteriaSha256": "0ae047973979b28f4dbd523ecbe1aae4129e4bfcc9c7a0de1b86645751c4c852",
+      "files": [
+        {
+          "blobSha1": "044eda6dc90ab446b5b6e1dc1626cb6dd510e7db",
+          "bytes": 15391,
+          "path": "src/anyio/_core/_tasks.py",
+          "sha256": "27676133f26adc6aec7e0fde9cd5a9473d92c5f335e6e2edfa911fbe842adee0",
+          "url": "https://github.com/agronholm/anyio/blob/f01c041ece0b61e5162f9d7d695c47e6b202763e/src/anyio/_core/_tasks.py"
+        },
+        {
+          "blobSha1": "91e86abf6bcde81aa7221e5ccd3158fdcc62612e",
+          "bytes": 111651,
+          "path": "src/anyio/_backends/_asyncio.py",
+          "sha256": "8502570afae1bffed2918135b9057ec59255033832ed97ce3846120efd846d05",
+          "url": "https://github.com/agronholm/anyio/blob/f01c041ece0b61e5162f9d7d695c47e6b202763e/src/anyio/_backends/_asyncio.py"
+        }
+      ],
+      "half": 1,
+      "host": "visible/dev-anyio-host.json",
+      "hostSha256": "cf311a57e521c49311eb85d46920855ba0a47827d3610bec8682cf977427bfc0",
+      "kind": "证据约束分析",
+      "repository": "agronholm/anyio",
+      "root": "visible/dev-anyio",
+      "sourceCommit": "f01c041ece0b61e5162f9d7d695c47e6b202763e",
+      "taskId": "dev-anyio"
+    }
+  ]
+}

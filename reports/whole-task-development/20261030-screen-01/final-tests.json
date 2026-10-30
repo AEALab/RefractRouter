@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "whole-task-baseline-v1",
+  "testExitCode": 0,
+  "passed": true,
+  "seconds": 275.9432600410655,
+  "junit": {
+    "tests": 2703,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "network": {
+    "schema_version": "pytest-network-guard-v1",
+    "external_network_blocked": true,
+    "scope": "pytest-python-process",
+    "subprocess_network_isolated": false,
+    "collection": {
+      "collected": 2698,
+      "selected": 2698,
+      "deselected": 0,
+      "executed": 2698
+    },
+    "allowed_loopback": 143,
+    "allowed_numeric_bind": 28,
+    "blocked_external": 7
+  },
+  "paidExecutionRequested": false,
+  "scope": "完整pytest及其调用的模拟宿主合同；Python网络防护不是OS级子进程隔离",
+  "sourceChangesAfterRun": [],
+  "sourceCommit": "87d6f8a37",
+  "typecheck": "通过",
+  "installationReceipt": "installed-wheel-acceptance.json",
+  "scopeNote": "最终报告归档不修改业务与测试源码；不是实际provider或用户UI验收。"
+}

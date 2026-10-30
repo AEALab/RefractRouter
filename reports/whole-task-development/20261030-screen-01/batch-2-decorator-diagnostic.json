@@ -1,0 +1,860 @@
+{
+  "schemaVersion": "whole-task-development-assessment-v1",
+  "manifestSha256": "0dc1d90d685211c9fa1e4158df608ba16de686a1367d638d50bd962a89ba308e",
+  "diagnosticOnly": true,
+  "decoratorRangeRepairs": [
+    {
+      "taskId": "dev-anyio",
+      "field": "clock_expression",
+      "path": "src/anyio/_backends/_asyncio.py",
+      "oldStart": 90642,
+      "newStart": 90625,
+      "end": 90719,
+      "change": "include-existing-decorators"
+    },
+    {
+      "taskId": "dev-anyio",
+      "field": "no_task_deadline_sign",
+      "path": "src/anyio/_backends/_asyncio.py",
+      "oldStart": 91855,
+      "newStart": 91838,
+      "end": 92485,
+      "change": "include-existing-decorators"
+    }
+  ],
+  "formalFrozenResultReplaced": false,
+  "oracleSha256": "99430c249dfd160a9b354c79e4f40e14f088d5302b6b1c7e88351e84ea8a2ab0",
+  "ledgerSha256": "ebf4488ac240062150ac1aa8bf122d7d17c5bf7182b2e6e190e22fe88b0203e9",
+  "items": [
+    {
+      "taskId": "dev-click",
+      "arm": "S0",
+      "half": 0,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "abbedd79a6741979a2bafc7ef110b57c7fce38ac77e812a97837c08fd6093275",
+        "criteriaSha256": "8a2e4fefb2687a08abc167b36b15569506c2ac3c4c99dc876f578e0c725bd45c",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "citationChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 1.24425,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 2.2453862917609513
+    },
+    {
+      "taskId": "dev-click",
+      "arm": "W0",
+      "half": 0,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "7e0f4b67c60c39fb790c04efe6b7959dfe925f1954076e7e4d9430cebc91525f",
+        "criteriaSha256": "8a2e4fefb2687a08abc167b36b15569506c2ac3c4c99dc876f578e0c725bd45c",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "citationChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.13715,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 2.022676458116621
+    },
+    {
+      "taskId": "dev-click",
+      "arm": "WF",
+      "half": 0,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "7e0f4b67c60c39fb790c04efe6b7959dfe925f1954076e7e4d9430cebc91525f",
+        "criteriaSha256": "8a2e4fefb2687a08abc167b36b15569506c2ac3c4c99dc876f578e0c725bd45c",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "citationChecks": {
+          "build_backend": true,
+          "copyright": true,
+          "minimum_python": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.15395,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 5.134895416907966
+    },
+    {
+      "taskId": "dev-platformdirs",
+      "arm": "S0",
+      "half": 1,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "b61de1444abc3fa1dc04707bbbb09852f0127005c60ff98ea900aa1066275210",
+        "criteriaSha256": "f59cd8f301c26ce8d2f94da2a78f71dea43436954fed763f8bd619fe1d1804ab",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "citationChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 7.19235,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.35657741734758
+    },
+    {
+      "taskId": "dev-platformdirs",
+      "arm": "W0",
+      "half": 1,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "134cf98b29c850793119d74399a165b8a9b2f8b3e4b714731394051a6cd5061a",
+        "criteriaSha256": "f59cd8f301c26ce8d2f94da2a78f71dea43436954fed763f8bd619fe1d1804ab",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "citationChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.7969,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 5.043675292283297
+    },
+    {
+      "taskId": "dev-platformdirs",
+      "arm": "WF",
+      "half": 1,
+      "kind": "确定性提取",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "134cf98b29c850793119d74399a165b8a9b2f8b3e4b714731394051a6cd5061a",
+        "criteriaSha256": "f59cd8f301c26ce8d2f94da2a78f71dea43436954fed763f8bd619fe1d1804ab",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "citationChecks": {
+          "ensure_exists_default": true,
+          "minimum_python": true,
+          "opinion_default": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.8137,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 7.314138583373278
+    },
+    {
+      "taskId": "dev-urllib3",
+      "arm": "S0",
+      "half": 0,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "f1d388328630fd9650ee0a291ab6a833bd3c4d1c3e25bf98350e732a64db14c6",
+        "criteriaSha256": "034f1cbf0f341f4791272dd25afbe1f844caf41d476583f67cb5c2cb96e5a15e",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": true
+        },
+        "citationChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": false
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 7.46685,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 3.8712508748285472
+    },
+    {
+      "taskId": "dev-urllib3",
+      "arm": "W0",
+      "half": 0,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "d1f9300374fd8aef01a5b47b87d9d73b10d4de73fb5122bae8a58f587bb7e072",
+        "criteriaSha256": "034f1cbf0f341f4791272dd25afbe1f844caf41d476583f67cb5c2cb96e5a15e",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": true
+        },
+        "citationChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": false
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.82735,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.531550790648907
+    },
+    {
+      "taskId": "dev-urllib3",
+      "arm": "WF",
+      "half": 0,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "f992df57213950745aebf2c44ee4fc4919573f56568dac10fcec35b6cf7b3156",
+        "criteriaSha256": "034f1cbf0f341f4791272dd25afbe1f844caf41d476583f67cb5c2cb96e5a15e",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": true
+        },
+        "citationChecks": {
+          "constructor_total": true,
+          "default_backoff_max": true,
+          "pool_default_total": false
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.8437,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 8.216463792137802
+    },
+    {
+      "taskId": "dev-cachetools",
+      "arm": "S0",
+      "half": 1,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "8f71bacb648c5eedb2b694b71cf970b77a300c7b8f79c02744b160adaf32df20",
+        "criteriaSha256": "61ccc97d57802911899a671bbed11ede4f06c922495104e68dee22354a0a56b8",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "citationChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 3.75795,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.424443542025983
+    },
+    {
+      "taskId": "dev-cachetools",
+      "arm": "W0",
+      "half": 1,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "09027b3ebbdca5bdacec8d2ce5668f30e1c7d939dd2fd7ed3377f63eef28f018",
+        "criteriaSha256": "61ccc97d57802911899a671bbed11ede4f06c922495104e68dee22354a0a56b8",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "citationChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.419,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.9068602081388235
+    },
+    {
+      "taskId": "dev-cachetools",
+      "arm": "WF",
+      "half": 1,
+      "kind": "跨文件受控修改",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "0177f7c5cc915786ec871e3ff2de39ebb34533d5f4e0d37623dc17ed5c391ca0",
+        "criteriaSha256": "61ccc97d57802911899a671bbed11ede4f06c922495104e68dee22354a0a56b8",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "citationChecks": {
+          "bare_maxsize": true,
+          "cache_base_class": true,
+          "default_maxsize": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.4379,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 9.555532875005156
+    },
+    {
+      "taskId": "dev-httpcore",
+      "arm": "S0",
+      "half": 0,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "9d7edcdb8f9f4748349aaa3458478a3905d85fd9f4ca0e2f58454bae0757dc47",
+        "criteriaSha256": "e2ea3238d5a2a8956b5436e32433ed597925f998e6794f64e89152bf76a8df15",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "default_extensions": true,
+          "effective_default_keepalive": true,
+          "pool_timeout_key": true
+        },
+        "citationChecks": {
+          "default_extensions": false,
+          "effective_default_keepalive": true,
+          "pool_timeout_key": true
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 4.0689,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 3.9474592502228916
+    },
+    {
+      "taskId": "dev-httpcore",
+      "arm": "W0",
+      "half": 0,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "30bf4015974a1387a173d592bbc703c7ddf4962c1de58bf3d2d3a06b8a092def",
+        "criteriaSha256": "e2ea3238d5a2a8956b5436e32433ed597925f998e6794f64e89152bf76a8df15",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "default_extensions": true,
+          "effective_default_keepalive": true,
+          "pool_timeout_key": true
+        },
+        "citationChecks": {
+          "default_extensions": false,
+          "effective_default_keepalive": false,
+          "pool_timeout_key": true
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.44995,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.683687249664217
+    },
+    {
+      "taskId": "dev-httpcore",
+      "arm": "WF",
+      "half": 0,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "ff3f7e602f85f12bf61e67f5595a7e645455b10358178d773c01c641e25c08f3",
+        "criteriaSha256": "e2ea3238d5a2a8956b5436e32433ed597925f998e6794f64e89152bf76a8df15",
+        "passed": false,
+        "status": "FAIL",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": false,
+          "patch": true
+        },
+        "answerChecks": {
+          "default_extensions": true,
+          "effective_default_keepalive": true,
+          "pool_timeout_key": true
+        },
+        "citationChecks": {
+          "default_extensions": false,
+          "effective_default_keepalive": false,
+          "pool_timeout_key": true
+        },
+        "failureCodes": [
+          "citations"
+        ],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": false,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 0.4643,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 6.8353904588148
+    },
+    {
+      "taskId": "dev-anyio",
+      "arm": "S0",
+      "half": 1,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "b4aaebb5398d226dc8b394a09ffd2c3237354efa69c68738c6a957edb875ffcf",
+        "criteriaSha256": "0ae047973979b28f4dbd523ecbe1aae4129e4bfcc9c7a0de1b86645751c4c852",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "citationChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 13.67325,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 4.309662041720003
+    },
+    {
+      "taskId": "dev-anyio",
+      "arm": "W0",
+      "half": 1,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "b4aaebb5398d226dc8b394a09ffd2c3237354efa69c68738c6a957edb875ffcf",
+        "criteriaSha256": "0ae047973979b28f4dbd523ecbe1aae4129e4bfcc9c7a0de1b86645751c4c852",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "citationChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 1.5178,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 5.86178854200989
+    },
+    {
+      "taskId": "dev-anyio",
+      "arm": "WF",
+      "half": 1,
+      "kind": "证据约束分析",
+      "assessment": {
+        "schemaVersion": "closed-development-evaluation-v1",
+        "candidateSha256": "e510ce1a33802808baf47b9e42935f8d5da516e49a9001b95ddc4aa4120735a1",
+        "criteriaSha256": "0ae047973979b28f4dbd523ecbe1aae4129e4bfcc9c7a0de1b86645751c4c852",
+        "passed": true,
+        "status": "PASS",
+        "dimensions": {
+          "format": true,
+          "answers": true,
+          "citations": true,
+          "patch": true
+        },
+        "answerChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "citationChecks": {
+          "clock_expression": true,
+          "move_on_after_starts_at_call": true,
+          "no_task_deadline_sign": true
+        },
+        "failureCodes": [],
+        "modelCalls": 0,
+        "scope": "complete-closed-task-only",
+        "openTaskQualityProven": false
+      },
+      "passed": true,
+      "completed": true,
+      "knownCost": true,
+      "knownStandardAFP": 1.53295,
+      "unknownReservedStandardAFP": 0.0,
+      "modelCalls": 1,
+      "toolQueries": 0,
+      "wallSeconds": 8.276365583762527
+    }
+  ],
+  "comparisons": {
+    "W0": {
+      "schemaVersion": "closed-development-paired-screen-v1",
+      "taskCount": 6,
+      "strongCompletedCandidateNotCompleted": 0,
+      "candidateImproved": 0,
+      "qualityLabelsComplete": true,
+      "qualityDifferenceObserved": 0.0,
+      "qualityDifferenceLower95": -0.39303776899708276,
+      "intervalMethod": "conservative-one-sided-clopper-pearson-loss-bound",
+      "independentTaskAssumptionRequiresSourceAudit": true,
+      "batchCostComparable": true,
+      "savingsFraction": 0.8890974252443953,
+      "halfSavings": [
+        0.8893231611893584,
+        0.8889802648277767
+      ],
+      "qualityIntervalWithinMargin": false,
+      "qualityMaintainedProven": false,
+      "costTargetObserved": true,
+      "releaseAllowed": false,
+      "scope": "screening-no-automatic-expansion"
+    },
+    "WF": {
+      "schemaVersion": "closed-development-paired-screen-v1",
+      "taskCount": 6,
+      "strongCompletedCandidateNotCompleted": 0,
+      "candidateImproved": 0,
+      "qualityLabelsComplete": true,
+      "qualityDifferenceObserved": 0.0,
+      "qualityDifferenceLower95": -0.39303776899708276,
+      "intervalMethod": "conservative-one-sided-clopper-pearson-loss-bound",
+      "independentTaskAssumptionRequiresSourceAudit": true,
+      "batchCostComparable": true,
+      "savingsFraction": 0.8864679956849015,
+      "halfSavings": [
+        0.8856064162754304,
+        0.8869151686089131
+      ],
+      "qualityIntervalWithinMargin": false,
+      "qualityMaintainedProven": false,
+      "costTargetObserved": true,
+      "releaseAllowed": false,
+      "scope": "screening-no-automatic-expansion"
+    }
+  },
+  "totals": {
+    "S0": {
+      "passed": 4,
+      "planned": 6,
+      "knownStandardAFP": 37.40355,
+      "unknownReservedStandardAFP": 0.0,
+      "wallSecondsObserved": 23.154779417905957,
+      "modelCalls": 6,
+      "toolQueries": 0
+    },
+    "W0": {
+      "passed": 4,
+      "planned": 6,
+      "knownStandardAFP": 4.14815,
+      "unknownReservedStandardAFP": 0.0,
+      "wallSecondsObserved": 27.050238540861756,
+      "modelCalls": 6,
+      "toolQueries": 0
+    },
+    "WF": {
+      "passed": 4,
+      "planned": 6,
+      "knownStandardAFP": 4.2465,
+      "unknownReservedStandardAFP": 0.0,
+      "wallSecondsObserved": 45.33278671000153,
+      "modelCalls": 6,
+      "toolQueries": 0
+    }
+  },
+  "modelCallsForResearchScoring": 0,
+  "actualProviderDebitVerified": false,
+  "heldoutExecuted": 0,
+  "releaseAllowed": false,
+  "scope": "人工受控六题的完整合同筛选；不是开放修复能力、随机总体或生产收益证明。"
+}
