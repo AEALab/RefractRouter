@@ -1,0 +1,70 @@
+{
+  "status": "pass",
+  "scope": "installed-wheel-and-tgz-native-dsh-demo",
+  "paid_model_calls": 0,
+  "live_acceptance": false,
+  "versions": {
+    "dsh": "0.1.5-rc.3",
+    "node": "v22.22.3"
+  },
+  "artifacts": {
+    "refractrouter-0.16.35-py3-none-any.whl": "969d6f0a32dfd501e1c5b7027591b5f70ef7cb197ace48ec9b75baf16713641c",
+    "dsh-refractrouter-validation-0.33.22.tgz": "9c74b0de9ef03f0a6e7f7a408f9e5c0487d8c3adc6bb930b864b65e57d4935bb"
+  },
+  "native_output_budget": {
+    "status": "pass",
+    "scope": "installed-native-output-http",
+    "paid_model_calls": 0,
+    "fixture_http_calls": 6,
+    "native_answer_limit": 131072,
+    "answer_only_total_output": 250000,
+    "reasoning_tokens": 249000,
+    "pure_answer_tokens": 1000,
+    "protected_fixture_cost_cny": 460.8,
+    "known_fixture_cost_cny": 112.545,
+    "insufficient_budget_zero_dispatch": true,
+    "total_output_native_limit": 32768,
+    "unicode_stream_usage": true,
+    "cancelled_known_usage_settled": true,
+    "unknown_reserve_preserved": true,
+    "actual_provider_verified": false
+  },
+  "governed_gateway": {
+    "status": "pass",
+    "scope": "installed-wheel-governed-http",
+    "paid_model_calls": 0,
+    "upstream_fixture_calls": 4,
+    "responses_tool_reasoning_roundtrip": true,
+    "unicode_buffered_sse_usage": true,
+    "inflight_version_pinned_after_rollback": true,
+    "model_identity_drift_stops_trial": true,
+    "restart_no_redispatch": true,
+    "unknown_fees_preserved": true,
+    "pending_readyz_503_history_readable": true,
+    "fixture_evidence_only": true,
+    "actual_strategy_benefit_qualified": false,
+    "actual_provider_compatibility_proven": false,
+    "parent_child_budget_enforced": false
+  },
+  "gateway_protocol": {
+    "status": "pass",
+    "scope": "installed-wheel-http-gateway-v2",
+    "paid_model_calls": 0,
+    "upstream_fixture_calls": 5,
+    "tool_reasoning_roundtrip": true,
+    "cache_and_reasoning_details": true,
+    "unicode_sse": true,
+    "all_candidate_rejection": true,
+    "actual_provider_compatibility_proven": false
+  },
+  "configured_providers": null,
+  "sourceCommit": "4e4c48c2c80b92fa01b1a8e9f9da2f8c716bde8c",
+  "packageIdentity": {
+    "status": "pass",
+    "sourceCoreMatchesInstalledWheel": true,
+    "coreSha256": "ec56b3e6ccb24de65772c9785655db782d326179eba5218d9f11e93f855dc03c",
+    "nativeHelperIncluded": true,
+    "compiledHostBoundaryIncluded": true,
+    "paidModelCalls": 0
+  }
+}

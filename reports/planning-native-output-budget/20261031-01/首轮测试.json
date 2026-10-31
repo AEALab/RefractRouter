@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "whole-task-baseline-v1",
+  "testExitCode": 1,
+  "passed": false,
+  "seconds": 261.2015497921966,
+  "junit": {
+    "tests": 2777,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "network": {
+    "schema_version": "pytest-network-guard-v1",
+    "external_network_blocked": true,
+    "scope": "pytest-python-process",
+    "subprocess_network_isolated": false,
+    "collection": {
+      "collected": 2772,
+      "selected": 2772,
+      "deselected": 0,
+      "executed": 2772
+    },
+    "allowed_loopback": 193,
+    "allowed_numeric_bind": 32,
+    "blocked_external": 7
+  },
+  "paidExecutionRequested": false,
+  "scope": "完整pytest及其调用的模拟宿主合同；Python网络防护不是OS级子进程隔离",
+  "sourceChangesAfterRun": []
+}
