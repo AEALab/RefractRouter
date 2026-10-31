@@ -85,13 +85,18 @@ class PlanningBudget:
         if unit not in self.ledgers:
             raise ValueError(f"缺少 {unit} 生产预算")
         from .task_budget import request_input_bound
-        from .responses_api import available_output_limit
+        from .planning_output_budget import reservation_bound
         bound = request_input_bound(messages, kwargs.get('tools'), kwargs.get('request_options'))
-        amount = bound / 1000 * max(model.input_cost_per_1k, getattr(model, "cache_write_cost_per_1k", None) or 0) + available_output_limit(model, bound) / 1000 * model.output_cost_per_1k
+        if kwargs.get('future_input_bound') is not None:
+            future=kwargs['future_input_bound']
+            if type(future) is not int or future<bound or kwargs.get('tools'):
+                raise ValueError('invalid future review input envelope')
+            bound=future
+        amount = reservation_bound(model,bound)['amount']
         for dimension, required in self.requirements(model, amount).items():
             if required > self.remaining(dimension):
                 raise ValueError(f"{dimension} production-budget-exhausted")
-        reservation = self._ledger(model).reserve(model, messages, **kwargs)
+        reservation = self._ledger(model).reserve(model, messages, native_output_budget=True, **kwargs)
         reservation.row['billing_mode'] = getattr(model, 'billing_mode', 'metered')
         reservation.row["billing_unit"] = unit
         self.records.append(reservation.row)
@@ -103,7 +108,10 @@ class PlanningBudget:
 
     @_locked
     def settle(self, reservation, response):
-        result = self._ledger(reservation.model).settle(reservation, response)
+        try:result = self._ledger(reservation.model).settle(reservation, response)
+        except Exception:
+            self.stop()
+            raise
         if self.reference_limit is not None:
             row = reservation.row
             row['reference_cost_cny'] = row['charged']

@@ -1,7 +1,7 @@
 # 下载安装
 
-本指南对应开发预览：Python 核心 **0.16.34**、DSH 插件 **0.33.21**。
-已验证 DSH **0.1.5-rc.3**；核对日期为 **2026-10-10**。
+本指南对应开发预览：Python 核心 **0.16.35**、DSH 插件 **0.33.22**。
+已验证 DSH **0.1.5-rc.3**；核对日期为 **2026-10-31**。
 本页下载来自本项目构建，不包含模型密钥、用户配置或会话。
 
 ## 选择安装方式
@@ -40,10 +40,10 @@ npm install --global --before=2026-09-27T00:00:00Z \
 
 ## 下载预览包
 
-- [推荐离线安装包：refractrouter-install-0.16.34.zip](https://aealab.github.io/RefractRouter/downloads/refractrouter-install-0.16.34.zip)
-- [Python 核心：refractrouter-0.16.34-py3-none-any.whl](https://aealab.github.io/RefractRouter/downloads/refractrouter-0.16.34-py3-none-any.whl)
-- [DSH 插件：dsh-refractrouter-validation-0.33.21.tgz](https://aealab.github.io/RefractRouter/downloads/dsh-refractrouter-validation-0.33.21.tgz)
-- [对应源码：refractrouter-source-0.16.34.zip](https://aealab.github.io/RefractRouter/downloads/refractrouter-source-0.16.34.zip)
+- [推荐离线安装包：refractrouter-install-0.16.35.zip](https://aealab.github.io/RefractRouter/downloads/refractrouter-install-0.16.35.zip)
+- [Python 核心：refractrouter-0.16.35-py3-none-any.whl](https://aealab.github.io/RefractRouter/downloads/refractrouter-0.16.35-py3-none-any.whl)
+- [DSH 插件：dsh-refractrouter-validation-0.33.22.tgz](https://aealab.github.io/RefractRouter/downloads/dsh-refractrouter-validation-0.33.22.tgz)
+- [对应源码：refractrouter-source-0.16.35.zip](https://aealab.github.io/RefractRouter/downloads/refractrouter-source-0.16.35.zip)
 - [SHA-256 校验文件](https://aealab.github.io/RefractRouter/downloads/SHA256SUMS.txt)
 - [构建与版本清单](https://aealab.github.io/RefractRouter/downloads/build-manifest.json)
 
@@ -66,7 +66,7 @@ shasum -a 256 -c SHA256SUMS.txt
 在保存安装包的目录执行：
 
 ```bash
-uv tool install ./refractrouter-0.16.34-py3-none-any.whl
+uv tool install ./refractrouter-0.16.35-py3-none-any.whl
 uv tool update-shell
 ```
 
@@ -89,7 +89,7 @@ DSH 也必须能从启动环境找到 `refractagent`；高级部署设置可以�
 以下示例使用 `web`，如果你的实际 profile 名不同，请替换：
 
 ```bash
-dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.21.tgz \
+dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.22.tgz \
   --offline --ignore-scripts
 ```
 
@@ -142,8 +142,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 升级时先核对安装版本、当前 profile 和是否使用尚未合入的开发包，再保存旧 wheel、tgz 与设置备份：
 
 ```bash
-uv tool install --reinstall ./refractrouter-0.16.34-py3-none-any.whl
-dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.21.tgz \
+uv tool install --reinstall ./refractrouter-0.16.35-py3-none-any.whl
+dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.22.tgz \
   --offline --ignore-scripts
 ```
 

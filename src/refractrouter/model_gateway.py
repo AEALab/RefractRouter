@@ -243,6 +243,9 @@ class HttpModelCaller:
     def _request(self, action, options):
         target = action["model"]
         provider = self.providers[target["provider"]]
+        declared=(target.get('outputBudget') or {}).get('parameter','host-maxTokens')
+        if declared not in ('host-maxTokens',provider.get('tokenLimitParameter','max_tokens')):
+            raise ValueError('冻结输出语义与上游参数不一致；拒绝派发')
         token = os.environ.get(provider.get("apiKeyEnv", ""), "")
         if provider.get("apiKeyEnv") and not token:
             raise ValueError("上游模型凭证未配置")
@@ -327,6 +330,9 @@ class ModelGateway:
                 raise ValueError("AFP 路线必须使用已冻结的 /api/plan/v3 接口")
             if p.get("tokenLimitParameter", "max_tokens") not in ('max_tokens', 'max_completion_tokens'):
                 raise ValueError("未知输出上限参数")
+            declared=(getattr(model,'output_budget',None) or {}).get('parameter','host-maxTokens')
+            if declared not in ('host-maxTokens',p.get('tokenLimitParameter','max_tokens')):
+                raise ValueError('冻结输出语义与上游参数不一致；拒绝派发')
             if set(p.get("requestOptions", {})) - {"thinking", "reasoning_effort", "temperature", "top_p"}:
                 raise ValueError("provider 参数不能覆盖消息、工具、模型或输出上限")
             if type(p.get("timeoutSeconds", 120)) not in (int, float) or not 0 < p.get("timeoutSeconds", 120) <= 600:

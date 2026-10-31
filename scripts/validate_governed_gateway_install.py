@@ -66,6 +66,8 @@ def validate(workspace, *, require_installed=True):
             'models':[{'id':key,'provider':'fixture','model':key,'deployment':'local',
                 'contextWindow':16384,'maxOutputTokens':1024,'billingUnit':'CNY',
                 'inputPer1k':.001,'cachedInputPer1k':.0002,'outputPer1k':.002,
+                'outputBudget':{'scope':'answer-and-reasoning-total','parameter':'max_completion_tokens',
+                    'sourceSha256':'a'*64},
                 'capabilities':{'toolCalling':'verified','requestFeatures':{f:'verified' for f in features}}}
                 for key in ('small','large')]}
         config={'schemaVersion':module.GATEWAY_CONFIG_V2,'planningRouting':planning,

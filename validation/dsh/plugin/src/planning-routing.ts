@@ -115,6 +115,8 @@ export function planningMessages(messages:ModelOptions['messages']):Json[] {
   })
 }
 function nativeOptions(action:Json,signal:AbortSignal,original:ModelOptions):LlmOptions {
+  if(action.model.outputBudget?.parameter&&action.model.outputBudget.parameter!=='host-maxTokens')
+    throw new Error('DSH只接通host-maxTokens，不能验证直接HTTP输出参数的映射')
   const messages=action.messages.map((m:Json)=>({...m,id:m.id??randomUUID(),
     source:m.source??{kind:'user'},content:typeof m.content==='string'?[{type:'text',text:m.content}]:m.content}))
   return {provider:action.model.provider,model:action.model.model,messages,
@@ -165,8 +167,11 @@ export class PlanningController {
   }
   private async completeMetadata(config:Json):Promise<Record<string,string>>{
     const hostIssues:Record<string,string>={}
+    for(const model of config.models??[])if(model.outputBudget?.parameter&&model.outputBudget.parameter!=='host-maxTokens')
+      hostIssues[model.id]='DSH只接通host-maxTokens；请核对宿主输出语义，不得套用直接HTTP参数'
     if(!this.ctx.llm.resolveModelInfo)return hostIssues
     await Promise.all((config.models??[]).map(async (model:Json)=>{
+      if(hostIssues[model.id])return
       try{
         const info=await this.metadata(model.provider,model.model,
           ['refractagent-planning-v7','refractagent-planning-v8'].includes(config.schemaVersion)&&!model.referencePricing?'REFERENCE':'AUTO',model)

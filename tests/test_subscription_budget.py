@@ -13,11 +13,14 @@ from refractrouter.openai_compatible import ChatResponse
 class BillingModel(ModelSpec):
     billing_mode: str = 'metered'
     cache_write_cost_per_1k: float | None = None
+    output_budget: dict | None = None
 
 
 def model(mode='subscription'):
     return BillingModel('ark-model', 'ark', 1, 1, 1, billing_unit='CNY',
-                     billing_mode=mode, context_window=10000, max_output_tokens=10)
+                     billing_mode=mode, context_window=10000, max_output_tokens=10,
+                     output_budget={'scope':'answer-and-reasoning-total','parameter':'host-maxTokens',
+                                    'sourceSha256':'a'*64})
 
 
 def test_subscription_and_cash_share_reference_ceiling_but_not_cash_ledger():

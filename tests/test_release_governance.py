@@ -47,13 +47,79 @@ def test_snapshot_binds_schema_prices_versions_and_rejects_tampering():
 
 
 @pytest.mark.parametrize('tokens,parameter', [(131072,'max_tokens'),(131072,'max_completion_tokens'),(1024,'max_tokens')])
-def test_native_capacity_unknown_is_rejected_without_lowering_limit(tmp_path,tokens,parameter):
+def test_verified_native_capacity_is_supported_without_lowering_limit(tmp_path,tokens,parameter):
     snapshot=release(tokens=tokens,parameter=parameter)
-    assert not snapshot['nativeBudgetVerified']
+    assert snapshot['nativeBudgetVerified']
     assert snapshot['configuration']['planningRouting']['models'][0]['maxOutputTokens']==tokens
+    assert qualification(snapshot,evidence(snapshot))['qualified']
+    assert ReleaseStore.create(tmp_path/'store',snapshot,actor='测试维护者',implementation=CORE)
+
+
+def test_native_scope_unknown_still_cannot_acquire_new_release_qualification(tmp_path):
+    original=release(tokens=131072)
+    config=deepcopy(original['configuration'])
+    for item in config['planningRouting']['models']:item.pop('outputBudget',None)
+    snapshot=frozen_release(config,original['versions'],implementation=CORE)
+    assert not snapshot['nativeBudgetVerified']
     assert not qualification(snapshot,evidence(snapshot))['qualified']
     with pytest.raises(ValueError,match='#223'):
         ReleaseStore.create(tmp_path/'store',snapshot,actor='测试维护者',implementation=CORE)
+
+
+def test_legacy_snapshot_keeps_original_hash_and_qualification_semantics():
+    original=release(tokens=131072)
+    config=deepcopy(original['configuration'])
+    for item in config['planningRouting']['models']:item.pop('outputBudget',None)
+    legacy=frozen_release(config,original['versions'],implementation=CORE,schema_version='routing-release-v1')
+    assert not legacy['nativeBudgetVerified']
+    assert validate_release(legacy)==legacy
+    current=frozen_release(config,original['versions'],implementation=CORE)
+    assert current['releaseSha256']!=legacy['releaseSha256']
+    assert legacy['configuration']==current['configuration']
+    assert not qualification(legacy,evidence(legacy),implementation=CORE)['qualified']
+
+
+def test_actual_prior_wheel_v1_snapshots_remain_readable_without_rewriting():
+    import json
+    from pathlib import Path
+    fixture=Path(__file__).resolve().parents[1]/'data/planning-native-output-v1/legacy-release-v1.json'
+    original=fixture.read_bytes();data=json.loads(original)
+    assert data['sourceCoreSha256']=='e8229089bc022da4a2105f56cc1d285e5ae38abc4538123f75ff28d46f376d16'
+    for snapshot in data['snapshots']:
+        assert validate_release(snapshot)==snapshot
+        cap=snapshot['configuration']['planningRouting']['models'][0]['maxOutputTokens']
+        assert snapshot['nativeBudgetVerified']==(cap<=8192)
+        with pytest.raises(ValueError,match='漂移'):validate_release(snapshot,implementation='1'*64)
+    assert fixture.read_bytes()==original
+
+
+def test_legacy_component_derivation_and_active_trial_are_not_reinterpreted(tmp_path):
+    from refractrouter.release_governance import encoded
+    current=composite_snapshot()
+    legacy=frozen_release(current['configuration'],current['versions'],implementation=CORE,
+        schema_version='routing-release-v1')
+    components=component_releases(legacy)
+    assert components['task']['schemaVersion']=='routing-release-v1'
+    assert all(s['schemaVersion']=='routing-release-v1' for s in components['stage'].values())
+    baseline=release();store=ReleaseStore.create(tmp_path/'store',baseline,actor='测试维护者',implementation=CORE)
+    # 构造升级前已登记且活动的旧试用；不以当前API重新签发历史资格。
+    with store.transaction() as db:
+        db.execute('INSERT INTO versions VALUES (?,?,?,?)',(legacy['releaseSha256'],encoded(legacy),
+            encoded(composite_evidence(legacy)),encoded({'qualified':True,'historical':True})))
+        db.execute('INSERT INTO trials VALUES (?,?,?,?,?,?)',('old-trial',legacy['releaseSha256'],5,expires(),1,1))
+    before=store.history()
+    with pytest.raises(ValueError,match='重新冻结'):store.assign(digest('new-task'),{'task':'new-task'})
+    with pytest.raises(ValueError,match='重新冻结'):store.selection_versions()
+    assert store.history()==before
+
+
+def test_release_cannot_qualify_unsupported_gateway_output_parameter():
+    snapshot=release();config=deepcopy(snapshot['configuration']);versions=deepcopy(snapshot['versions'])
+    config['providers']['fake']['tokenLimitParameter']='max_output_tokens'
+    versions['outputSemantics']['fake']['parameter']='max_output_tokens'
+    for item in config['planningRouting']['models']:item['outputBudget']['parameter']='max_output_tokens'
+    with pytest.raises(ValueError,match='未接通'):
+        frozen_release(config,versions,implementation=CORE)
 
 
 def test_credentials_cannot_be_frozen():

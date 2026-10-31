@@ -16,6 +16,7 @@ from .host_evidence import validate_evidence
 from .privacy_placement import classify_view, allows_sensitive
 from .task_budget import InvalidModelOutput, request_input_bound
 from .planning_budget import PlanningBudget
+from .planning_output_budget import reservation_bound
 from .planning_decision import (LocalDecisionCapacityError, candidate_assessments,
                                 decision_request, filter_candidates, parse_decision, select_task_candidate,
                                 task_state)
@@ -406,16 +407,9 @@ class PlanningRuntime(StageHybridRuntime):
                 model_id = (c["advisor"]["judge"]["modelId"] if strategy == "advisor" and role == "advisor"
                             and c["advisor"]["mode"] == "configured" else c["roles"][role])
                 model = c["models"][model_id]
-                if model.provider == "deepseek-official" and model.billing_unit == "CNY":
-                    price = deepseek_cny_pricing(model.api_model, conservative=True)
-                    if price:
-                        model = replace(model, input_cost_per_1k=price["inputPer1k"],
-                                        output_cost_per_1k=price["outputPer1k"],
-                                        cached_input_cost_per_1k=price["cachedInputPer1k"])
                 input_bound = request_input_bound(messages, tools, execution_options) if strategy == "static" else model.context_window
-                run["budget"].add_required(bounds, model, (
-                    input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
-                    + model.max_output_tokens / 1000 * model.output_cost_per_1k))
+                run["budget"].add_required(bounds, model,
+                    reservation_bound(model,input_bound,check_context=False)['amount'])
             if any(bound > run["budget"].remaining(unit) for unit, bound in bounds.items()) \
                     or (c["max_calls"] and len(run["budget"].records) + len(purposes)
                         + remaining_local_reviews > c["max_calls"]):
@@ -597,29 +591,12 @@ class PlanningRuntime(StageHybridRuntime):
         return self.execute(run)
 
     def _cost_bound(self, model, messages, tools, output_cap=None, request_options=None):
-        reserve = model
-        if model.provider == "deepseek-official" and model.billing_unit == "CNY":
-            pricing = deepseek_cny_pricing(model.api_model, conservative=True)
-            if pricing:
-                reserve = replace(model, input_cost_per_1k=pricing["inputPer1k"],
-                                  output_cost_per_1k=pricing["outputPer1k"])
-        input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
-        max_output = min(reserve.max_output_tokens, output_cap) if output_cap is not None else reserve.max_output_tokens
-        return (request_input_bound(messages, tools, request_options) / 1000 * input_price
-                + max_output / 1000 * reserve.output_cost_per_1k)
+        return reservation_bound(model,request_input_bound(messages,tools,request_options),output_cap)['amount']
 
     def _bounded_input_cost(self, model, input_bound, output_cap):
-        reserve = model
-        if model.provider == "deepseek-official" and model.billing_unit == "CNY":
-            pricing = deepseek_cny_pricing(model.api_model, conservative=True)
-            if pricing:
-                reserve = replace(model, input_cost_per_1k=pricing["inputPer1k"],
-                                  output_cost_per_1k=pricing["outputPer1k"])
-        max_output = min(reserve.max_output_tokens, output_cap)
-        if input_bound + max_output > reserve.context_window:
-            raise ValueError(f"模型 {model.model_id} 容量不足以覆盖冻结输入与输出")
-        input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
-        return input_bound / 1000 * input_price + max_output / 1000 * reserve.output_cost_per_1k
+        try:return reservation_bound(model,input_bound,output_cap)['amount']
+        except ValueError as exc:
+            raise ValueError(f"模型 {model.model_id} 容量不足以覆盖冻结输入与输出：{exc}") from exc
 
     def _preflight_escalation_path(self, run, messages, tools, output_cap=None, request_options=None):
         """同一任务同一时间只有一个 flow；在初始派发前原子保护最坏调用路径。"""
@@ -1032,7 +1009,9 @@ class PlanningRuntime(StageHybridRuntime):
         buffered = buffered or tool_check.get('required', False) and not tool_check.get('passed', False)
         return {"action": "call", "callId": token, "purpose": purpose, "buffered": buffered,
             "model": {"id": model.model_id, "provider": model.provider, "model": model.api_model,
-                      "maxTokens": model.max_output_tokens, **model.request_options},
+                      "maxTokens": model.max_output_tokens,
+                      "outputBudget":deepcopy(reservation.row['native_output_budget']['contract']),
+                      **model.request_options},
             "messages": messages, "tools": tools, **self.describe(run)}
 
     def execute(self, run, role=None, purpose="execute"):

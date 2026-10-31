@@ -219,3 +219,28 @@ def test_history_and_execution_share_one_cache_after_restart(tmp_path):
     final=GovernedGateway(config,tmp_path/'runs',caller_factory=lambda _:Caller(),implementation=CORE)
     INSTANCES.append(final)
     assert final.outcome({'runId':runs[0]},scope='alice')['candidates']
+
+
+def test_native_answer_reserve_survives_unknown_rollback_and_restart(tmp_path,monkeypatch):
+    original=snapshot
+    def native_snapshot(label):
+        frozen=original(label);config=deepcopy(frozen['configuration']);versions=deepcopy(frozen['versions'])
+        config['providers']['fake']['tokenLimitParameter']='max_tokens'
+        versions['outputSemantics']['fake'].update(parameter='max_tokens',scope='answer-only')
+        for item in config['planningRouting']['models']:
+            item.update(contextWindow=1_024_000,maxOutputTokens=131072,
+                outputBudget={'scope':'answer-only','parameter':'max_tokens','sourceSha256':'a'*64})
+        return frozen_release(config,versions,implementation=CORE)
+    monkeypatch.setattr('tests.test_governed_gateway.snapshot',native_snapshot)
+    caller=Caller(reply('未知原生用量',usage=False))
+    gateway,store,_,_,config,_=setup(tmp_path,Caller(reply('基线')),caller);runs=[]
+    with pytest.raises(ValueError):gateway.complete(req(),scope='alice',on_outcome=runs.append)
+    before=gateway.outcome({'runId':runs[0]},scope='alice')['calls']
+    assert before[0]['wire_output_tokens']==131072 and before[0]['protected_total_tokens']==1_024_000
+    assert before[0]['charged']==before[0]['reserved']==pytest.approx(2.048)
+    store.rollback(actor='维护者',reason='核对未知原生用量');gateway.close()
+    restarted=GovernedGateway(config,tmp_path/'runs',caller_factory=lambda _:caller,implementation=CORE)
+    INSTANCES.append(restarted)
+    assert restarted.outcome({'runId':runs[0]},scope='alice')['calls']==before
+    with pytest.raises(ValueError,match='不得自动重新派发'):restarted.complete(req(),scope='alice')
+    assert len(caller.actions)==1

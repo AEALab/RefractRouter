@@ -7,8 +7,8 @@
 [首次任务](https://aealab.github.io/RefractRouter/quickstart.html) ·
 [问题反馈](https://github.com/AEALab/RefractRouter/issues)
 
-本次开发预览：核心 **0.16.34**、DSH 插件 **0.33.21**；已验证 DSH **0.1.5-rc.3**。
-核对日期：2026-10-10。公开源码的版本以对应清单为准，预览下载包附匹配源码与 SHA-256。
+本次开发预览：核心 **0.16.35**、DSH 插件 **0.33.22**；已验证 DSH **0.1.5-rc.3**。
+核对日期：2026-10-31。公开源码的版本以对应清单为准，预览下载包附匹配源码与 SHA-256。
 
 ## 两种路由
 
@@ -61,9 +61,9 @@ DSH 插件是宿主适配层，提供入口、设置、原生事件和图形；�
 解压并核对 SHA-256 后，在该目录执行：
 
 ```bash
-uv tool install ./refractrouter-0.16.34-py3-none-any.whl
+uv tool install ./refractrouter-0.16.35-py3-none-any.whl
 uv tool update-shell
-dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.21.tgz \
+dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.22.tgz \
   --offline --ignore-scripts
 ```
 
@@ -99,8 +99,10 @@ Base URL：`http://127.0.0.1:8088/v1`。虚拟模型为 `refract/static`、`refr
 支持已验收的 Chat Completions／Responses 文本/function 子集；不执行宿主工具，不进入 DAG。
 
 网关配置、认证、历史、推理协商和 Codex CLI 边界见[独立模型接口](docs/independent-model-router.md)。
-核心 0.16.34 新增可选的[版本治理与有限试用入口](docs/routing-release-governance.md)，
+核心提供可选的[版本治理与有限试用入口](docs/routing-release-governance.md)，
 固定配置、价格和实际身份；默认入口与策略不变，未通过真实验收的策略不能借此启用。
+规划费用按[原生回答、思考与全部输出合同](docs/planning-native-output-budget.md)统一预留，
+预算不足拒绝派发，旧配置明确保守保护，不截短原生输出来让预检通过。
 `refractagent serve` 是另一套自定义任务 HTTP 协议，不是模型 Base URL；
 DSH 网页地址也不是模型 API。
 

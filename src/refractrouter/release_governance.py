@@ -14,7 +14,8 @@ from .planning_config import compile_config, preview, STRATEGIES
 from .development_evaluation import paired_screen
 from .readonly_facts import check_json_value, strict_json as parse_json
 
-VERSION = 'routing-release-v1'
+VERSION = 'routing-release-v2'
+LEGACY_VERSION = 'routing-release-v1'
 EVIDENCE = 'routing-release-evidence-v1'
 HASH = re.compile(r'[0-9a-f]{64}')
 
@@ -43,7 +44,7 @@ def object_fields(value, fields, name):
         raise ValueError(f'{name}字段不完整或存在未知字段')
 
 
-def frozen_release(config, versions, *, implementation=None, publication_id=None):
+def frozen_release(config, versions, *, implementation=None, publication_id=None, schema_version=VERSION):
     """冻结既有Gateway v2和精确身份声明；声明本身不是资格证据。"""
     if (type(config) is not dict or set(config)-{'schemaVersion','planningRouting','providers','authTokenEnv'}
             or not {'schemaVersion','planningRouting','providers'}<=set(config)):
@@ -89,11 +90,21 @@ def frozen_release(config, versions, *, implementation=None, publication_id=None
             raise ValueError('只允许凭据环境变量名称')
         if set(provider.get('requestOptions', {})) - {'thinking','reasoning_effort','temperature','top_p'}:
             raise ValueError('provider选项不能覆盖协议或凭据')
-    # #223尚未迁移全部旧路径；新治理发布先拒绝不能证明总输出受限的配置，不缩减原生上限。
-    budget_verified = all(config['providers'][m.provider].get('tokenLimitParameter') == 'max_completion_tokens'
-        and versions['outputSemantics'][m.provider]['parameter'] == 'max_completion_tokens'
-        and versions['outputSemantics'][m.provider]['scope'] == 'answer-and-reasoning-total'
-        and type(m.max_output_tokens) is int and 0 < m.max_output_tokens <= 8192 for m in compiled['models'].values())
+        if schema_version==VERSION and provider.get('tokenLimitParameter','max_tokens') not in ('max_tokens','max_completion_tokens'):
+            raise ValueError('当前Chat网关未接通该输出参数')
+    if schema_version not in (VERSION,LEGACY_VERSION):raise ValueError('未知发布快照版本')
+    if schema_version==LEGACY_VERSION:
+        # 只复核原历史摘要，不将旧资格或容量声明重新解释为新合同。
+        budget_verified = all(config['providers'][m.provider].get('tokenLimitParameter') == 'max_completion_tokens'
+            and versions['outputSemantics'][m.provider]['parameter'] == 'max_completion_tokens'
+            and versions['outputSemantics'][m.provider]['scope'] == 'answer-and-reasoning-total'
+            and type(m.max_output_tokens) is int and 0 < m.max_output_tokens <= 8192 for m in compiled['models'].values())
+    else:
+        budget_verified=all(m.output_budget['scope']!='unknown'
+            and m.output_budget['scope']==versions['outputSemantics'][m.provider]['scope']
+            and versions['outputSemantics'][m.provider]['parameter']==config['providers'][m.provider].get('tokenLimitParameter','max_tokens')
+            and m.output_budget['parameter'] in ('host-maxTokens',versions['outputSemantics'][m.provider]['parameter'])
+            for m in compiled['models'].values())
     common = deepcopy(config)
     common['planningRouting'].pop('defaultStrategy', None)
     units={m.billing_unit for m in compiled['models'].values()}
@@ -102,7 +113,7 @@ def frozen_release(config, versions, *, implementation=None, publication_id=None
         if type(value) in (list,tuple):return any(paid_jev(v) for v in value)
         return False
     if any(paid_jev(compiled.get(name)) for name in ('task','stage','composite','advisor','escalation')):units.add('CNY')
-    payload = {'schemaVersion': VERSION, 'configuration': deepcopy(config), 'versions': deepcopy(versions),
+    payload = {'schemaVersion': schema_version, 'configuration': deepcopy(config), 'versions': deepcopy(versions),
         'implementationSha256': identity, 'strategy': strategy,'publicationId':publication,
         'billingUnit': compiled['unit'],
         'billingUnits': sorted(units),
@@ -117,7 +128,7 @@ def validate_release(value, *, implementation=None):
     object_fields(value, ('schemaVersion','configuration','versions','implementationSha256','strategy','billingUnit','billingUnits','publicationId',
         'contextSha256','nativeBudgetVerified','coverage','parentChildSharedBudgetEnforced','releaseSha256'), '发布快照')
     expected = frozen_release(value['configuration'], value['versions'], implementation=value['implementationSha256'],
-        publication_id=value['publicationId'])
+        publication_id=value['publicationId'],schema_version=value['schemaVersion'])
     if expected != value:
         raise ValueError('发布快照摘要或派生声明不符')
     if implementation is not None and value['implementationSha256'] != implementation:
@@ -133,7 +144,8 @@ def component_releases(release):
     task_config=deepcopy(raw); target=task_config['planningRouting'];target['defaultStrategy']='task'
     if task['mode']=='pool':target['task']={k:deepcopy(v) for k,v in task.items() if k!='mode'}
     elif 'task' in target:target.pop('task')
-    task_release=frozen_release(task_config,release['versions'],implementation=release['implementationSha256'])
+    task_release=frozen_release(task_config,release['versions'],implementation=release['implementationSha256'],
+        schema_version=release['schemaVersion'])
     stages={}
     for initial in dict.fromkeys([*task['pool'],compiled['roles']['efficient']]):
         if initial==composite['takeover']:continue
@@ -145,7 +157,8 @@ def component_releases(release):
                     'refractagent-planning-v7','refractagent-planning-v8'):target['stage']={'mode':'rules'}
             target['parameters']={**target.get('parameters',{}),**{k:stage[k] for k in ('window','threshold','holdTurns')}}
         else:target['stage']=deepcopy(stage)
-        stages[initial]=frozen_release(stage_config,release['versions'],implementation=release['implementationSha256'])
+        stages[initial]=frozen_release(stage_config,release['versions'],implementation=release['implementationSha256'],
+            schema_version=release['schemaVersion'])
     return {'task':task_release,'stage':stages}
 
 
@@ -153,6 +166,7 @@ def qualification(release, evidence, *, implementation=None):
     """验收真实独立配对的声明及数值；来源真实性仍由维护者审计，不伪称签名认证。"""
     validate_release(release)
     reasons = []
+    if release['schemaVersion']==LEGACY_VERSION:reasons.append('legacy-output-contract-requires-refreeze')
     if not release['nativeBudgetVerified']: reasons.append('native-output-budget-unverified-223')
     if implementation is not None and release['implementationSha256'] != implementation:
         reasons.append('implementation-drift')
@@ -246,6 +260,8 @@ class ReleaseStore:
     def create(cls, root, baseline, *, actor, implementation=None):
         identity = implementation or core_identity()
         validate_release(baseline, implementation=identity)
+        if baseline['schemaVersion']!=VERSION:
+            raise ValueError('历史发布快照只读；新基线需要按当前输出合同重新冻结')
         if not baseline['nativeBudgetVerified']:
             raise ValueError('默认路线原生费用语义未验证，见#223，不能无声缩输出')
         root=Path(root).resolve(); root.mkdir(parents=True,exist_ok=True,mode=0o700)
@@ -354,6 +370,9 @@ class ReleaseStore:
             trial=db.execute('SELECT * FROM trials WHERE active=1 ORDER BY rowid DESC LIMIT 1').fetchone()
             chosen,token=default,None
             if trial:
+                trial_snapshot=stored_json(db.execute('SELECT snapshot FROM versions WHERE id=?',(trial['release_id'],)).fetchone()[0])
+                if trial_snapshot['schemaVersion']==LEGACY_VERSION:
+                    raise ValueError('历史发布试用需明确重新冻结；保留原资格、次数与路线，不自动回退')
                 expired=datetime.fromisoformat(trial['expires'])<=datetime.now(timezone.utc)
                 row=db.execute('SELECT * FROM versions WHERE id=?',(trial['release_id'],)).fetchone()
                 pending=row['qualification']=='pending-revalidation'
@@ -366,6 +385,8 @@ class ReleaseStore:
                     else: db.execute('UPDATE trials SET active=0 WHERE id=?',(trial['id'],))
                 else: db.execute('UPDATE trials SET active=0 WHERE id=?',(trial['id'],))
             row=db.execute('SELECT snapshot,qualification FROM versions WHERE id=?',(chosen,)).fetchone()
+            if stored_json(row['snapshot'])['schemaVersion']==LEGACY_VERSION:
+                raise ValueError('历史默认发布需明确重新冻结；不自动改变路线')
             validate_release(stored_json(row['snapshot']),implementation=self.implementation)
             if row['qualification']=='pending-revalidation': raise ValueError('默认配置版本待复核，拒绝新任务')
             db.execute('INSERT INTO assignments VALUES (?,?,?,?)',(task,chosen,encoded(identity),token))
@@ -460,8 +481,13 @@ class ReleaseStore:
             default=db.execute('SELECT value FROM settings WHERE key=?',('default',)).fetchone()[0]
             row=db.execute('SELECT qualification FROM versions WHERE id=?',(default,)).fetchone()
             if row['qualification']=='pending-revalidation': raise ValueError('默认配置待复核')
+            snapshot=stored_json(db.execute('SELECT snapshot FROM versions WHERE id=?',(default,)).fetchone()[0])
+            if snapshot['schemaVersion']==LEGACY_VERSION:raise ValueError('历史默认发布需明确重新冻结')
             selected=[default]
             trial=db.execute('SELECT * FROM trials WHERE active=1 ORDER BY rowid DESC LIMIT 1').fetchone()
+            if trial:
+                candidate=stored_json(db.execute('SELECT snapshot FROM versions WHERE id=?',(trial['release_id'],)).fetchone()[0])
+                if candidate['schemaVersion']==LEGACY_VERSION:raise ValueError('历史发布试用需明确重新冻结')
             if trial and trial['used']<trial['max_tasks'] and datetime.fromisoformat(trial['expires'])>datetime.now(timezone.utc):
                 row=db.execute('SELECT * FROM versions WHERE id=?',(trial['release_id'],)).fetchone()
                 if row['qualification']!='pending-revalidation' and qualification(stored_json(row['snapshot']),

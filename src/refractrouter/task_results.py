@@ -10,6 +10,8 @@ CALL_FIELDS = ("call_id", "model_id", "provider", "actual_model", "purpose", "st
                "input_sha256", "output_sha256", "billing_unit", "billing_mode", "reserved", "charged",
                "request_options_sha256", "caller_output_cap",
                "reservation_basis", "protected_total_tokens", "reserved_answer_tokens",
+               "native_output_budget", "wire_output_tokens", "output_limit_scope", "reserved_output_tokens",
+               "total_output_bound_confirmed", "observed_reasoning_tokens",
                "observed_answer_tokens", "answer_bound_confirmed",
                "observed_actual_model", "observed_provider_revision", "price_binding_confirmed",
                "reference_cost_cny", "cash_cost_cny", "cash_cost_status", "cost_basis",
