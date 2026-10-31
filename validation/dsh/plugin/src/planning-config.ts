@@ -17,6 +17,9 @@ export interface PlanningModelConfig {
   reasoningEffort?:string;billingUnit?:'USD'|'AFP'|'CNY';deployment?:string;trustPolicy?:string
   billingMode?:'metered'|'subscription';referencePricing?:{executionEndpoint:string;price:Record<string,unknown>;mapping:Record<string,unknown>;schedule?:Array<{minInputTokens:number;price:Record<string,unknown>}>}
   capabilityCard?:string;capabilities?:PlanningModelCapabilities
+  outputBudget?:{scope:'answer-only'|'answer-and-reasoning-total'|'unknown'
+    parameter:'max_tokens'|'max_completion_tokens'|'max_output_tokens'|'host-maxTokens'
+    contextTokens?:number;sourceSha256:string|null}
 }
 export type TaskJudgeConfig =
   | {type:'llm';modelId:string}

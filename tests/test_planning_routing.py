@@ -28,6 +28,8 @@ def configuration(strategy="stage"):
         "defaultStrategy": strategy, "maxProductionCost": 10, "timeoutMs": 300000,
         "models": [{"id": id, "provider": "fake", "model": id, "contextWindow": 32000,
                     "maxOutputTokens": 1024, "inputPer1k": .001, "outputPer1k": .002,
+                    "outputBudget":{"scope":"answer-and-reasoning-total","parameter":"host-maxTokens",
+                                    "sourceSha256":"a"*64},
                     "deployment": "local", "reasoningEffort": "low"}
                    for id in ("small", "large", "judge")],
         "roles": {"efficient": "small", "capable": "large", "classifier": "judge", "advisor": "judge"}}

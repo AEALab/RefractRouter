@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "planning-native-legacy-fixture-v1",
+  "sourceWheelSha256": "746accd7720d6a4ac86a3116a4bc17172df253e45fdc88080b24b7abda9615c8",
+  "sourceCoreSha256": "e8229089bc022da4a2105f56cc1d285e5ae38abc4538123f75ff28d46f376d16",
+  "snapshots": [
+    {
+      "schemaVersion": "routing-release-v1",
+      "configuration": {
+        "schemaVersion": "refractrouter-gateway-config-v2",
+        "planningRouting": {
+          "schemaVersion": "refractagent-planning-v8",
+          "enabled": true,
+          "defaultStrategy": "static",
+          "billingUnit": "CNY",
+          "maxProductionCostByUnit": {
+            "CNY": 1000
+          },
+          "roles": {
+            "efficient": "native",
+            "capable": "native"
+          },
+          "models": [
+            {
+              "id": "native",
+              "provider": "fixture",
+              "model": "native",
+              "contextWindow": 1024000,
+              "maxOutputTokens": 1024,
+              "inputPer1k": 0.45,
+              "outputPer1k": 0.45,
+              "deployment": "local",
+              "billingUnit": "CNY"
+            }
+          ]
+        },
+        "providers": {
+          "fixture": {
+            "baseURL": "http://127.0.0.1:1/v1",
+            "tokenLimitParameter": "max_completion_tokens"
+          }
+        }
+      },
+      "versions": {
+        "providers": {
+          "fixture": "fixture-provider-v1"
+        },
+        "models": {
+          "native": "native-v1"
+        },
+        "outputSemantics": {
+          "fixture": {
+            "scope": "answer-and-reasoning-total",
+            "parameter": "max_completion_tokens",
+            "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      },
+      "implementationSha256": "e8229089bc022da4a2105f56cc1d285e5ae38abc4538123f75ff28d46f376d16",
+      "strategy": "static",
+      "publicationId": "历史v1夹具-1024",
+      "billingUnit": "CNY",
+      "billingUnits": [
+        "CNY"
+      ],
+      "contextSha256": "c66efe1e477a6165c59b1376363369815da741c2adf77b6b47f1fffd6e4e3b69",
+      "nativeBudgetVerified": true,
+      "coverage": "managed-agent-only",
+      "parentChildSharedBudgetEnforced": false,
+      "releaseSha256": "bd0ada33514e19350ee2daf6edec6e35be9cf0813adc0fd0d45ce1a962b14a5a"
+    },
+    {
+      "schemaVersion": "routing-release-v1",
+      "configuration": {
+        "schemaVersion": "refractrouter-gateway-config-v2",
+        "planningRouting": {
+          "schemaVersion": "refractagent-planning-v8",
+          "enabled": true,
+          "defaultStrategy": "static",
+          "billingUnit": "CNY",
+          "maxProductionCostByUnit": {
+            "CNY": 1000
+          },
+          "roles": {
+            "efficient": "native",
+            "capable": "native"
+          },
+          "models": [
+            {
+              "id": "native",
+              "provider": "fixture",
+              "model": "native",
+              "contextWindow": 1024000,
+              "maxOutputTokens": 131072,
+              "inputPer1k": 0.45,
+              "outputPer1k": 0.45,
+              "deployment": "local",
+              "billingUnit": "CNY"
+            }
+          ]
+        },
+        "providers": {
+          "fixture": {
+            "baseURL": "http://127.0.0.1:1/v1",
+            "tokenLimitParameter": "max_completion_tokens"
+          }
+        }
+      },
+      "versions": {
+        "providers": {
+          "fixture": "fixture-provider-v1"
+        },
+        "models": {
+          "native": "native-v1"
+        },
+        "outputSemantics": {
+          "fixture": {
+            "scope": "answer-and-reasoning-total",
+            "parameter": "max_completion_tokens",
+            "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      },
+      "implementationSha256": "e8229089bc022da4a2105f56cc1d285e5ae38abc4538123f75ff28d46f376d16",
+      "strategy": "static",
+      "publicationId": "历史v1夹具-131072",
+      "billingUnit": "CNY",
+      "billingUnits": [
+        "CNY"
+      ],
+      "contextSha256": "634460effee899418274ada4b7939c356741fbe317c035a8019d44ed37872be6",
+      "nativeBudgetVerified": false,
+      "coverage": "managed-agent-only",
+      "parentChildSharedBudgetEnforced": false,
+      "releaseSha256": "70133822d54257af6c63b3be2270bc1ebb08137705f6cc866f9d45c71152faf6"
+    }
+  ]
+}

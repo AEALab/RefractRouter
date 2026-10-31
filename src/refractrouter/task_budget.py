@@ -87,7 +87,7 @@ class TaskCallBudget:
             return dict(self.charged), deepcopy(self.records)
 
     def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None,
-                future_input_bound=None, request_options=None, context_token_envelope=None):
+                future_input_bound=None, request_options=None, context_token_envelope=None, native_output_budget=False):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
@@ -98,7 +98,13 @@ class TaskCallBudget:
             if type(future_input_bound) is not int or future_input_bound < input_bound or tools:
                 raise ValueError('invalid future review input envelope')
             input_bound = future_input_bound
-        output_bound = available_output_limit(model, input_bound)
+        native_bound=None
+        if native_output_budget:
+            if self.adaptive_output_reservation or context_token_envelope is not None:
+                raise ValueError('原生规划预留不能与缩减输出或研究包络混用')
+            from .planning_output_budget import reservation_bound
+            native_bound=reservation_bound(model,input_bound)
+        output_bound = native_bound['wireOutputTokens'] if native_bound else available_output_limit(model, input_bound)
         if output_bound <= 0:
             raise ValueError('request leaves no model output capacity')
         if getattr(model, 'unrestricted_execution_output', False):
@@ -122,6 +128,7 @@ class TaskCallBudget:
                 raise ValueError('study-call-limit-exhausted')
             ceiling = min(self.limits[category], category_limit if category_limit is not None else float('inf'))
             input_reserve = input_bound / 1000 * max(model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None) or 0)
+            if native_bound is not None:input_reserve=input_bound/1000*native_bound['pricesPer1k']['input']
             remaining = ceiling - self.charged[category] - input_reserve
             if remaining < 0:
                 raise ValueError(f'{category}-budget-exhausted before {label}')
@@ -134,6 +141,9 @@ class TaskCallBudget:
                 model = replace(model, max_output_tokens=output_bound)
             reserve = input_reserve + output_bound / 1000 * model.output_cost_per_1k
             protected_output = output_bound
+            if native_bound is not None:
+                reserve=native_bound['amount']
+                protected_output=native_bound['reservedTotalOutputTokens']
             if context_token_envelope is not None:
                 reserve = context_token_envelope / 1000 * marginal
                 protected_output = context_token_envelope
@@ -158,6 +168,11 @@ class TaskCallBudget:
             if context_token_envelope is not None:
                 row.update(reservation_basis='shared-context-token-envelope',
                            protected_total_tokens=context_token_envelope, reserved_answer_tokens=output_bound)
+            if native_bound is not None:
+                row.update(reservation_basis=native_bound['reservationBasis'],native_output_budget=deepcopy(native_bound),
+                    protected_total_tokens=native_bound['protectedTotalTokens'],
+                    reserved_answer_tokens=output_bound if native_bound['contract']['scope']=='answer-only' else None,
+                    wire_output_tokens=output_bound,output_limit_scope=native_bound['contract']['scope'])
             if request_options:
                 row['request_options_sha256'] = hashlib.sha256(json.dumps(
                     request_options, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
@@ -325,6 +340,21 @@ class TaskCallBudget:
             row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
         answer_bound_valid = True
+        native=row.get('native_output_budget')
+        if native is not None:
+            from .cache_usage import observed_details
+            _,observed_reasoning=observed_details(response)
+            answer_tokens=response.output_tokens-observed_reasoning if observed_reasoning is not None else None
+            scope=native['contract']['scope']
+            if scope=='answer-and-reasoning-total':
+                answer_bound_valid=response.output_tokens<=native['wireOutputTokens']
+            elif scope=='answer-only':
+                answer_bound_valid=(answer_tokens<=native['wireOutputTokens'] if answer_tokens is not None
+                    else response.output_tokens<=native['wireOutputTokens'])
+            row.update(observed_answer_tokens=answer_tokens,
+                answer_bound_confirmed=answer_bound_valid if scope=='answer-only' else None,
+                total_output_bound_confirmed=(response.output_tokens<=native['reservedTotalOutputTokens']),
+                observed_reasoning_tokens=observed_reasoning)
         if row.get('reservation_basis') == 'shared-context-token-envelope':
             from .cache_usage import observed_details
             _, observed_reasoning = observed_details(response)

@@ -56,10 +56,15 @@ def observed_details(response):
     raw = response.raw_usage
     reasoning = None
     if isinstance(raw, dict):
-        for key in ("completion_tokens_details", "output_tokens_details"):
-            detail = raw.get(key)
-            if isinstance(detail, dict) and "reasoning_tokens" in detail:
-                value = detail["reasoning_tokens"]
-                if type(value) is int and 0 <= value <= response.output_tokens and value == response.reasoning_tokens:
-                    reasoning = value
+        # 规划宿主包装原始回执；DSH 使用原生 reasoningTokens，不能丢失真实细分或补造零。
+        sources=[raw]
+        if isinstance(raw.get('providerUsage'),dict):sources.append(raw['providerUsage'])
+        observed=[]
+        for source in sources:
+            if 'reasoningTokens' in source:observed.append(source['reasoningTokens'])
+            for key in ("completion_tokens_details", "output_tokens_details"):
+                detail=source.get(key)
+                if isinstance(detail,dict) and 'reasoning_tokens' in detail:observed.append(detail['reasoning_tokens'])
+        if observed and all(type(value) is int and 0<=value<=response.output_tokens
+                and value==response.reasoning_tokens for value in observed):reasoning=observed[0]
     return cached, reasoning

@@ -65,6 +65,7 @@ class PlanningModel(ModelSpec):
     capabilities: dict | None = None
     capability_card: str = ""
     reference_pricing: dict | None = None
+    output_budget: dict | None = None
 
 
 def _capabilities(raw):
@@ -439,7 +440,7 @@ def compile_config(raw):
         m = obj(item, ("id", "provider", "model", "contextWindow", "maxOutputTokens",
             "inputPer1k", "outputPer1k", "cachedInputPer1k", "cacheWritePer1k", "reasoningEffort",
             "deployment", "trustPolicy", "capabilityCard", "billingUnit", "capabilities",
-            "billingMode", "referencePricing", "revision"), "model")
+            "billingMode", "referencePricing", "revision", "outputBudget"), "model")
         if "revision" in m:
             if raw["schemaVersion"] != SCHEMA_V8 or (not isinstance(m["revision"], str) or not m["revision"]
                     or m["revision"] != m["revision"].strip() or len(m["revision"]) > 256):
@@ -491,6 +492,8 @@ def compile_config(raw):
                      'cacheWritePer1k': float(rates.get('cacheWrite', rates['input']) * 1000)}
             context = number(m.get("contextWindow"), "contextWindow", 512, 10000000, True)
             output = number(m.get("maxOutputTokens"), "maxOutputTokens", 1, context - 1, True)
+            from .planning_output_budget import output_contract
+            output_budget=output_contract(m.get('outputBudget'),context)
             input_price = number(m.get("inputPer1k"), "inputPer1k")
             output_price = number(m.get("outputPer1k"), "outputPer1k")
             cached = number(m.get("cachedInputPer1k", input_price), "cachedInputPer1k", 0, input_price)
@@ -518,7 +521,8 @@ def compile_config(raw):
                 conversion_rate=fx_rate if converted else None,
                 conversion_source=fx_snapshot["source"] if converted else None,
                 conversion_as_of=fx_snapshot["as_of"] if converted else None,
-                capabilities=capabilities, capability_card=card, reference_pricing=m.get('referencePricing'))
+                capabilities=capabilities, capability_card=card, reference_pricing=m.get('referencePricing'),
+                output_budget=output_budget)
         except (ValueError, TypeError, KeyError) as exc:
             model_issues[model_id] = str(exc)
     roles = obj(raw.get("roles", {}), ("efficient", "capable", "classifier", "advisor"), "roles")

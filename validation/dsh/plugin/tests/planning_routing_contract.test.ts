@@ -13,7 +13,8 @@ import { createHash } from 'node:crypto'
 const root=resolve('../../..')
 const config:PlanningConfig={schemaVersion:'refractagent-planning-v1',enabled:true,maxProductionCost:10,
   models:['small','large','judge'].map(id=>({id,provider:'fake',model:id,contextWindow:32000,maxOutputTokens:1024,
-    inputPer1k:.001,outputPer1k:.002,deployment:'local',reasoningEffort:'low'})),
+    inputPer1k:.001,outputPer1k:.002,deployment:'local',reasoningEffort:'low',
+    outputBudget:{scope:'answer-and-reasoning-total',parameter:'host-maxTokens',sourceSha256:'a'.repeat(64)}})),
   roles:{efficient:'small',capable:'large',classifier:'judge',advisor:'judge'}}
 const tool={type:'tool-call',id:'read1',name:'read',arguments:'{}'}
 function* reply(text:string,blocks:Record<string,unknown>[]=[]):Generator<StreamChunk>{
@@ -72,6 +73,42 @@ async function fixture(strategy:PlanningStrategy='static',relativeRuns=false){
     async cleanup(){disposal?.();worker.dispose();await new Promise(r=>setTimeout(r,50));await rm(path,{recursive:true,force:true})}}
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
+
+test('原生回答131072经宿主保持不变，249000思考按总输出计费',async()=>{
+  const f=await fixture('static')
+  try{
+    f.setPlanning({...config,schemaVersion:'refractagent-planning-v8',defaultStrategy:'static',billingUnit:'CNY',
+      maxProductionCostByUnit:{CNY:1000},models:config.models!.map(m=>({...m,billingUnit:'CNY',
+        contextWindow:1_024_000,maxOutputTokens:131072,inputPer1k:.45,outputPer1k:.45,
+        outputBudget:{scope:'answer-only',parameter:'host-maxTokens',sourceSha256:'a'.repeat(64)}}))})
+    f.setReplies([function*(){
+      yield {type:'block-start',index:0,block:{type:'text'}}
+      yield {type:'text-delta',index:0,text:'中文原生🦀'}
+      yield {type:'block-end',index:0,block:{type:'text',text:'中文原生🦀'} as any}
+      yield {type:'usage',usage:{inputTokens:100,outputTokens:250000,reasoningTokens:249000}}
+      yield {type:'finish',reason:{kind:'stop'}}
+    }])
+    const chunks=await collect(f.controller.stream(f.options))
+    assert.equal(f.calls.length,1);assert.equal(f.calls[0].maxTokens,131072)
+    const finish=chunks.find(c=>c.type==='finish') as any
+    const outcome=await f.controller.outcome({op:'outcome',runId:finish.replayState.response.refractPlanning.runId,turn:1})
+    assert.equal(outcome.calls[0].wire_output_tokens,131072)
+    assert.equal(outcome.calls[0].observed_reasoning_tokens,249000)
+    assert.equal(outcome.calls[0].observed_answer_tokens,1000)
+    assert.equal(outcome.calls[0].reserved,460.8)
+    assert.equal(outcome.calls[0].charged,112.545)
+  }finally{await f.cleanup()}
+})
+
+test('DSH不能验证直接HTTP参数映射时在首次宿主调用前拒绝',async()=>{
+  const f=await fixture('static')
+  try{
+    f.setPlanning({...config,defaultStrategy:'static',models:config.models!.map(m=>({...m,
+      outputBudget:{scope:'answer-and-reasoning-total',parameter:'max_completion_tokens',sourceSha256:'a'.repeat(64)}}))})
+    await assert.rejects(()=>collect(f.controller.stream(f.options)),/host-maxTokens/)
+    assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
+})
 
 test('v8影子配置经真实Python核心往返，未知缓存保留且不追加分类或改变执行模型',async()=>{
   const f=await fixture('task')
