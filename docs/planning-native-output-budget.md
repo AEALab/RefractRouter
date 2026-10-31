@@ -38,7 +38,7 @@
   "outputBudget": {
     "scope": "answer-only",
     "parameter": "max_tokens",
-    "contextTokens": 1048576,
+    "contextTokens": 1024000,
     "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
 }
