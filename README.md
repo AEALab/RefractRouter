@@ -155,6 +155,7 @@ uv run pytest
 - [DSH 插件说明](validation/dsh/plugin/README.md)
 - [自动路由最新行为](docs/automatic-tool-evidence-and-next-steps.md)
 - [规划路由支持矩阵](docs/planning-routing-support-matrix.md)
+- [Codex 与 DSH 模型目录及强弱分类草稿](docs/codex-dsh-model-catalog.md)
 - [研究与历史证据索引](docs/research-index.md)
 - [文档站构建与发布](website/README.md)
 
