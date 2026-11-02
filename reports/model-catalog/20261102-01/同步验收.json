@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "refractrouter-model-catalog-evidence-v1",
+  "asOf": "2026-11-02T11:04:03.654118+08:00",
+  "sourceScope": "仅发布目录、发现与既有调用的允许字段摘要；不公开本地完整设置、凭据、会话、账户或私有维护文件。",
+  "versions": {
+    "opencodex": "2.91.0",
+    "dsh": "0.1.5-rc.3",
+    "installedRouterPlugin": "0.33.25"
+  },
+  "installedVersionNote": "本机开发包版本与仓库预览版本不同；本轮未升级或降级任何安装包。",
+  "currentDiscovery": {
+    "moonshot": {
+      "ok": true,
+      "latencyMs": 534,
+      "models": 6,
+      "message": "Connected — 6 models available."
+    },
+    "ds": {
+      "ok": true,
+      "latencyMs": 131,
+      "models": 2,
+      "message": "Connected — 2 models available."
+    },
+    "minimax-cn": {
+      "applicable": false,
+      "reason": "static_catalog",
+      "latencyMs": 0
+    }
+  },
+  "priorChecks": {
+    "checkedAt": "2026-11-02T08:45:01.939065+08:00",
+    "source": "本机 weekly-20261102.json 的脱敏摘要，不是本轮新增生成调用",
+    "checks": [
+      {
+        "model": "gpt-6.1-terra",
+        "checked_at": "2026-11-02T00:42:48.913693+00:00",
+        "first_terminal": "response.completed",
+        "output": "OK",
+        "terminal": "response.completed",
+        "ok": true,
+        "seconds": 2.48
+      },
+      {
+        "model": "moonshot/kimi-k3.1-pro",
+        "checked_at": "2026-11-02T00:42:51.392545+00:00",
+        "first_terminal": "response.completed",
+        "function_called": true,
+        "output": "OK",
+        "terminal": "response.completed",
+        "ok": true,
+        "seconds": 5.91
+      },
+      {
+        "model": "moonshot/kimi-k3.1-pro-highspeed",
+        "checked_at": "2026-11-02T00:42:57.301730+00:00",
+        "first_terminal": "response.completed",
+        "function_called": true,
+        "output": "OK",
+        "terminal": "response.completed",
+        "ok": true,
+        "seconds": 2.5
+      },
+      {
+        "model": "minimax-cn/MiniMax-M3",
+        "checked_at": "2026-11-02T00:42:59.800659+00:00",
+        "first_terminal": "response.completed",
+        "output": "OK",
+        "terminal": "response.completed",
+        "ok": true,
+        "seconds": 1.02
+      }
+    ]
+  },
+  "syncAcceptance": {
+    "codexVisibleModels": 37,
+    "dshImportedModels": 29,
+    "dshBrowserCatalogObserved": true,
+    "defaultModelUnchanged": true,
+    "refractagentSettingsUnchanged": true,
+    "existingDirectProvidersUnchanged": true,
+    "settingsBackupCreated": true,
+    "newGenerationCalls": 0,
+    "routerPolicyChanged": false,
+    "dshRetryPolicy": {
+      "mode": "normal",
+      "maxRetries": 0
+    },
+    "proxyInternalRetriesVerifiedThisRun": false,
+    "proxyRecoveryNote": "保留现有 OpenCodex 内部恢复策略，不能把 DSH 零重试外推为全链路零重试。",
+    "newDshResponsesMaxOutputTokensSent": false,
+    "outputNote": "新入口省略 max_output_tokens；不表示已核验每个上游的原生输出上限。"
+  },
+  "limitations": [
+    "目录可见、发现成功、既有生成成功、当前端到端生成通过是不同证据。",
+    "MiniMax 本轮发现返回 static_catalog，复用既有调用记录；不声称今天逐个重新调用通过。",
+    "29 个宿主模型没有自动进入 RefractAgent 生产候选池、角色或策略。",
+    "旧直连入口保留；其旧型号不因此获得新的可用性认证。",
+    "配置和私有维护文件未公开，公开摘要不能代替完整供应商账单或私有原始日志。"
+  ]
+}
